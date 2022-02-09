@@ -5,8 +5,7 @@ from utils.download import download
 from utils import get_logger
 import scraper
 import time
-import crawlParser
-import tokenizer
+from crawler import crawlParser
 
 
 class Worker(Thread):
