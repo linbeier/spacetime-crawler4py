@@ -6,6 +6,7 @@ from utils import get_logger
 import scraper
 import time
 import crawlParser
+import tokenizer
 
 
 class Worker(Thread):
@@ -13,6 +14,9 @@ class Worker(Thread):
         self.logger = get_logger(f"Worker-{worker_id}", "Worker")
         self.config = config
         self.frontier = frontier
+        self.word_frequency = {}
+        self.max_words_number = 0
+        self.max_words_url = ""
         # basic check for requests in scraper
         assert {getsource(scraper).find(req) for req in {"from requests import", "import requests"}} == {-1}, "Do not use requests from scraper.py"
         super().__init__(daemon=True)
@@ -29,6 +33,14 @@ class Worker(Thread):
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
                 f"using cache {self.config.cache_server}.")
             tokens = p.parse(resp)
+            # get rid of stop words
+
+            # count word number, get max url
+            if self.max_words_number < len(tokens):
+                self.max_words_number = len(tokens)
+                self.max_words_url = tbd_url
+            # calculate word frequency
+            crawlParser.WordFrequency(tokens, self.word_frequency)
             # crawlParser.CrawlParser.persistent(tokens)
             scraped_urls = scraper.scraper(tbd_url, resp)
             for scraped_url in scraped_urls:

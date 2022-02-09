@@ -9,24 +9,20 @@ class tokenizer():
     def Tokenize(self, file):
         tokens = []
         prog = re.compile(r"(?=[ -~])([A-Za-z0-9@#*&']{2,})")
-        for f in file:
-            temptoken = prog.findall(f)
-            if temptoken:
-                temptoken = [x.lower() for x in temptoken]
-                tokens.extend(temptoken)
+        temptoken = prog.findall(file)
+        if temptoken:
+            temptoken = [x.lower() for x in temptoken]
+            tokens.extend(temptoken)
 
         return tokens
 
     # Use hash map to store token and its frequency, time complexity is O(n)
-    def WordFrequency(self, file):
-        tokenList = self.Tokenize(file)
-        tokenDict = {}
+    def WordFrequency(self, tokenList, tokenDict):
         for token in tokenList:
             if token in tokenDict:
                 tokenDict[token] += 1
             else:
                 tokenDict[token] = 1
-        return tokenDict
 
     # Iterate hash map and print key and value, time complexity is O(n)
     def PrintFrequency(self, tokenMap):
