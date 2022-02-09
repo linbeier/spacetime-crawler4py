@@ -19,12 +19,11 @@ def extract_next_links(url, resp):
     print("url = ", url)
     print("resp.url = ", resp.url)
     print("resp.status = ", resp.status)
-    if(resp.status == 200) {
+    if(resp.status == 200):
         print("resp.raw_response.url = ", resp.raw_response.url)
         print("resp.raw_response.content = ", resp.raw_response.content)
-    } else {
+    else:
         print("resp.error = ", resp.error)
-    }
     
     return list()
 
