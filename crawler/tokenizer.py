@@ -16,7 +16,8 @@ class tokenizer():
         return tokens
 
     # Use hash map to store token and its frequency, time complexity is O(n)
-    def WordFrequency(self, tokenList):
+    def WordFrequency(self, file):
+        tokenList = self.Tokenize(file)
         tokenDict = {}
         for token in tokenList:
             if token in tokenDict:
