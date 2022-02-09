@@ -22,7 +22,16 @@ def WordFrequency(tokenList, tokenDict):
 
 class CrawlParser:
     def __init__(self):
+        self.stopwrds = self.load_stopwrds()
         pass
+
+    def load_stopwrds(self, Lang = 'Eng'):
+        file_name = 'stop_words_' + Lang
+        stopwrds = set()
+        with open(file_name, 'r', encoding = "utf-8") as f:
+            for line in f:
+                stopwrds.add(line.strip())
+        return stopwrds
 
     # need pre-parse html, arg is a html file
     def parse(self, file):
@@ -32,7 +41,15 @@ class CrawlParser:
         text = soup.get_text()
         # print(text)
         word_set = token.Tokenize(text)
-        print(word_set)
+        print(word_set) # todo
+        word_set = self.remove_stopwrds(word_set)
+        print(word_set) # todo
+        return word_set
+
+    def remove_stopwrds(self, word_set, lang = 'Eng'):
+        for word in word_set:
+            if word in self.stopwrds:
+                word_set.remove(word)
         return word_set
 
     # persistent results to files
@@ -41,7 +58,8 @@ class CrawlParser:
 
 
 if __name__ == "__main__":
-    f = open("../test/Donald Bren School of Information and Computer Sciences @ University of California, Irvine.html", "r")
+    f = open("../test/Donald Bren School of Information and Computer Sciences @ University of California, Irvine.html",
+            "r", encoding = "utf-8")
     texts = f.read()
     c = CrawlParser()
     c.parse(texts)
