@@ -7,7 +7,8 @@ import re
 def filter_nontext(element):
     if isinstance(element, Comment):
         return False
-    if element.parent.name in ['[document]', 'script', 'meta', 'head', 'html', 'input', 'style', 'noscript', 'canvas']:
+    if element.parent.name in ['[document]', 'script', 'meta', 'head', 'html', 'input', 'style', 'noscript', 'canvas'
+        , 'div']:
         return False
     if re.match(r'[\r\s\n]+', str(element)):
         return False
@@ -20,17 +21,17 @@ class CrawlParser:
 
     # need pre-parse html, arg is a html file
     def parse(self, file):
-        t = tokenizer.tokenizer()
+        token = tokenizer.tokenizer()
         soup = BeautifulSoup(file, features="html.parser")
         # strip html header
         text = soup.find_all(text=True)
         visible_text = filter(filter_nontext, text)
+        visible_list = []
         for t in visible_text:
-            print(t.strip())
+            visible_list.append(t)
 
-        # word_dict = t.Tokenize(text)
-        # print(word_dict)
-        pass
+        word_dict = token.Tokenize(visible_list)
+        return word_dict
 
     # persistent results to files
     def persistent(self, tokens):

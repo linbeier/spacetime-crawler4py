@@ -9,10 +9,12 @@ class tokenizer():
     def Tokenize(self, file):
         tokens = []
         prog = re.compile(r"(?=[ -~])([A-Za-z0-9@#*&']{2,})")
-        temptoken = prog.findall(file)
-        if temptoken:
-            temptoken = [x.lower() for x in temptoken]
-            tokens.extend(temptoken)
+        for f in file:
+            temptoken = prog.findall(f)
+            if temptoken:
+                temptoken = [x.lower() for x in temptoken]
+                tokens.extend(temptoken)
+
         return tokens
 
     # Use hash map to store token and its frequency, time complexity is O(n)
