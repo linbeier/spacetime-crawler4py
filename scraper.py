@@ -27,22 +27,27 @@ def extract_next_links(url, resp, soup):
     #     # print("resp.raw_response.url = ", resp.raw_response.url)
     #     # print("resp.raw_response.content = ", resp.raw_response.content)
     #     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
-        
+    fd = open("url_raw.txt", "w")
     for link in soup.find_all('a'):
         # print(link.get('href'))
         urls_raw.append(link.get('href'))
-    # else:
-    #     print("resp.error = ", resp.error)
-    
-    # soup = BeautifulSoup(resp.text, 'html.parser')
+
+
+
+    for l in urls_raw:
+        fd.write(l + "\n")
+
+    fd.close()
+
+
     for url_raw in urls_raw:
         assembled = process_link(url, url_raw)
         if assembled:
             urls.append(assembled)
-    f = open("url_assembled.txt", "a")
-    for line in urls:
-        f.write(line + "\n")
-    f.close()
+    # f = open("url_assembled.txt", "w")
+    # for line in urls:
+    #     f.write(line + "\n")
+
     print("urls.length = ", len(urls))
     return urls
 
@@ -57,7 +62,7 @@ def is_valid(url):
             return False
         b = False
         for domain in domains:
-            if(parsed.netloc.find(domain) != -1):
+            if parsed.netloc.find(domain) != -1:
                 b = True
                 break
         if not b:

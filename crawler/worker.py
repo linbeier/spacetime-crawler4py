@@ -20,15 +20,22 @@ class Worker(Thread):
         self.max_words_number = 0
         self.max_words_url = ""
         # basic check for requests in scraper
-        assert {getsource(scraper).find(req) for req in {"from requests import", "import requests"}} == {-1}, "Do not use requests from scraper.py"
+        assert {getsource(scraper).find(req) for req in {"from requests import", "import requests"}} == {
+            -1}, "Do not use requests from scraper.py"
         super().__init__(daemon=True)
-        
+
     def run(self):
         p = crawlParser.CrawlParser()
         # write urls in a text file - single thread
         fo = open("url.txt", "a")
+
+        fd = open("word_frequency", "w")
+        fd = open("max_words_url", "w")
+        f1 = open("url_processed", "w")
+
         while True:
             tbd_url = self.frontier.get_tbd_url()
+
             if not tbd_url:
                 self.logger.info("Frontier is empty. Stopping Crawler.")
                 fd = open("word_frequency", "w")
@@ -38,9 +45,19 @@ class Worker(Thread):
                 fd = open("max_words_url", "w")
                 fd.write(self.max_words_url + " = " + self.max_words_number)
                 fd.close()
+
                 fo.close()
+                f1.close()
                 break
+
             fo.write(tbd_url + "\n")
+
+            for k, v in sorted(self.word_frequency.items(), key=lambda x: x[1], reverse=True):
+                fd.write(k + " = " + v)
+            fd.close()
+            fd.write(self.max_words_url + " = " + self.max_words_number)
+            fd.close()
+
             resp = download(tbd_url, self.config, self.logger)
             soup = self.parse_html(resp)
 
@@ -53,6 +70,13 @@ class Worker(Thread):
 
             tokens = p.parse(resp, soup)
             scraped_urls = scraper.scraper(tbd_url, resp, soup)
+
+
+
+            for l in scraped_urls:
+                f1.write(l + "\n")
+
+
 
             # count word number, get max url
             if self.max_words_number < len(tokens):
