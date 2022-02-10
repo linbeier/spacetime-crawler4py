@@ -53,7 +53,7 @@ class Worker(Thread):
             fo.write(tbd_url + "\n")
 
             for k, v in sorted(self.word_frequency.items(), key=lambda x: x[1], reverse=True):
-                fd_word.write(f"{k}  =  {v}")
+                fd_word.write(f"{k}  =  {v}\n")
 
 
             resp = download(tbd_url, self.config, self.logger)
@@ -80,7 +80,7 @@ class Worker(Thread):
             if self.max_words_number < len(tokens):
                 self.max_words_number = len(tokens)
                 self.max_words_url = tbd_url
-                fd_maxurl.write(self.max_words_url + " = " + str(self.max_words_number))
+                fd_maxurl.write(self.max_words_url + " = " + str(self.max_words_number) + "\n")
 
             # calculate word frequency
             crawlParser.WordFrequency(tokens, self.word_frequency)
