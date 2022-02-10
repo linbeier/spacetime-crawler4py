@@ -29,9 +29,9 @@ class Worker(Thread):
         # write urls in a text file - single thread
         fo = open("url.txt", "a")
 
-        fd = open("word_frequency", "w")
-        fd = open("max_words_url", "w")
-        f1 = open("url_processed", "w")
+        fd_word = open("word_frequency", "a")
+        fd_maxurl = open("max_words_url", "a")
+        f1 = open("url_processed", "a")
 
         while True:
             tbd_url = self.frontier.get_tbd_url()
@@ -41,10 +41,10 @@ class Worker(Thread):
                 fd = open("word_frequency", "w")
                 for k, v in sorted(self.word_frequency.items(), key=lambda x: x[1], reverse=True):
                     fd.write(k + " = " + v)
-                fd.close()
+                fd_word.close()
                 fd = open("max_words_url", "w")
-                fd.write(self.max_words_url + " = " + self.max_words_number)
-                fd.close()
+                fd.write(self.max_words_url + " = " + str(self.max_words_number))
+                fd_maxurl.close()
 
                 fo.close()
                 f1.close()
@@ -53,10 +53,9 @@ class Worker(Thread):
             fo.write(tbd_url + "\n")
 
             for k, v in sorted(self.word_frequency.items(), key=lambda x: x[1], reverse=True):
-                fd.write(k + " = " + v)
-            fd.close()
-            fd.write(self.max_words_url + " = " + self.max_words_number)
-            fd.close()
+                fd_word.write(f"{k}  =  {v}")
+            fd_maxurl.write(self.max_words_url + " = " + str(self.max_words_number))
+
 
             resp = download(tbd_url, self.config, self.logger)
             soup = self.parse_html(resp)
