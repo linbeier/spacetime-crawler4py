@@ -52,9 +52,6 @@ class Worker(Thread):
 
             fo.write(tbd_url + "\n")
 
-            for k, v in sorted(self.word_frequency.items(), key=lambda x: x[1], reverse=True):
-                fd_word.write(f"{k}  =  {v}\n")
-
 
             resp = download(tbd_url, self.config, self.logger)
             soup = self.parse_html(resp)
@@ -85,6 +82,9 @@ class Worker(Thread):
             # calculate word frequency
             crawlParser.WordFrequency(tokens, self.word_frequency)
             # crawlParser.CrawlParser.persistent(tokens)
+
+            for k, v in sorted(self.word_frequency.items(), key=lambda x: x[1], reverse=True):
+                fd_word.write(f"{k}  =  {v}\n")
 
             for scraped_url in scraped_urls:
                 self.frontier.add_url(scraped_url)
