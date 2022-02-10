@@ -17,11 +17,20 @@ class Worker(Thread):
         super().__init__(daemon=True)
         
     def run(self):
+        # write urls in a text file - single thread
+        count = 0
+        fo = open("url.txt", "a")
         while True:
+            if(count < 100):
+                count = count + 1
+            else:
+                break
             tbd_url = self.frontier.get_tbd_url()
             if not tbd_url:
                 self.logger.info("Frontier is empty. Stopping Crawler.")
+                fo.close()
                 break
+            fo.write(tbd_url + "\n")
             resp = download(tbd_url, self.config, self.logger)
             self.logger.info(
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
