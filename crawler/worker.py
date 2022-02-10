@@ -18,8 +18,13 @@ class Worker(Thread):
         
     def run(self):
         # write urls in a text file - single thread
+        count = 0
         fo = open("url.txt", "a")
         while True:
+            if(count < 100):
+                count = count + 1
+            else:
+                break
             tbd_url = self.frontier.get_tbd_url()
             if not tbd_url:
                 self.logger.info("Frontier is empty. Stopping Crawler.")
