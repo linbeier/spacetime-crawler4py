@@ -26,7 +26,7 @@ class CrawlParser:
         pass
 
     def load_stopwrds(self, Lang = 'Eng'):
-        file_name = 'stop_words_' + Lang
+        file_name = './crawler/stop_words_' + Lang
         stopwrds = set()
         with open(file_name, 'r', encoding = "utf-8") as f:
             for line in f:
@@ -34,9 +34,9 @@ class CrawlParser:
         return stopwrds
 
     # need pre-parse html, arg is a html file
-    def parse(self, file):
+    def parse(self, file, soup):
         token = tokenizer.tokenizer()
-        soup = BeautifulSoup(file, features="html.parser")
+        # soup = BeautifulSoup(file, features="html.parser")
         # strip html header
         text = soup.get_text()
         # print(text)

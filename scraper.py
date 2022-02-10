@@ -2,12 +2,12 @@ import re
 from urllib.parse import urlparse, urldefrag
 from bs4 import BeautifulSoup
 
-def scraper(url, resp):
+def scraper(url, resp, soup):
     print("enter scraper")
-    links = extract_next_links(url, resp)
+    links = extract_next_links(url, resp, soup)
     return [link for link in links if is_valid(link)]
 
-def extract_next_links(url, resp):
+def extract_next_links(url, resp, soup):
     # Implementation required.
     # url: the URL that was used to get the page
     # resp.url: the actual url of the page
@@ -23,16 +23,16 @@ def extract_next_links(url, resp):
     # print("resp.status = ", resp.status)
     urls = []
     urls_raw = []
-    if resp.status == 200:
-        # print("resp.raw_response.url = ", resp.raw_response.url)
-        # print("resp.raw_response.content = ", resp.raw_response.content)
-        soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+    # if resp.status == 200:
+    #     # print("resp.raw_response.url = ", resp.raw_response.url)
+    #     # print("resp.raw_response.content = ", resp.raw_response.content)
+    #     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
         
-        for link in soup.find_all('a'):
-            # print(link.get('href'))
-            urls_raw.append(link.get('href'))
-    else:
-        print("resp.error = ", resp.error)
+    for link in soup.find_all('a'):
+        # print(link.get('href'))
+        urls_raw.append(link.get('href'))
+    # else:
+    #     print("resp.error = ", resp.error)
     
     # soup = BeautifulSoup(resp.text, 'html.parser')
     for url_raw in urls_raw:
