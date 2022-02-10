@@ -3,6 +3,7 @@ from urllib.parse import urlparse, urldefrag
 from bs4 import BeautifulSoup
 
 def scraper(url, resp):
+    print("enter scraper")
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
@@ -38,7 +39,11 @@ def extract_next_links(url, resp):
         assembled = process_link(url, url_raw)
         if(assembled):
             urls.append(assembled)
-    
+    f = open("url_assembled.txt", "a")
+    for line in urls:
+        f.write(line + "\n")
+    f.close()
+    print("urls.length = ", len(urls))
     return urls
 
 def is_valid(url):
