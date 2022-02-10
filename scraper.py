@@ -26,7 +26,8 @@ def extract_next_links(url, resp):
     else:
         print("resp.error = ", resp.error)
     
-    soup = BeautifulSoup(resp.text, 'html.parser')
+    # soup = BeautifulSoup(resp.text, 'html.parser')
+    soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
     urls = []
     for link in soup.find_all('a'):
         print(link.get('href'))
@@ -37,10 +38,14 @@ def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
+    domains = [".ics.uci.edu", ".cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu", "today.uci.edu/department/information_computer_sciences"]
     try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
+        for domain in domains:
+            if(parsed.netloc.find(domain) == -1):
+                return False
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
