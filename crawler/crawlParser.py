@@ -41,7 +41,7 @@ class CrawlParser:
         text = soup.get_text()
         # print(text)
         word_set = token.Tokenize(text)
-        print(word_set) # todo
+        # print(word_set) # todo
         word_set = self.remove_stopwrds(word_set)
         print(word_set) # todo
         return word_set

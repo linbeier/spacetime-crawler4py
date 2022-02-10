@@ -1,7 +1,9 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urldefrag
+from bs4 import BeautifulSoup
 
 def scraper(url, resp):
+    print("enter scraper")
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
@@ -15,17 +17,52 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    print(url)
-    return list()
+
+    # print("url = ", url)
+    # print("resp.url = ", resp.url)
+    # print("resp.status = ", resp.status)
+    urls = []
+    urls_raw = []
+    if resp.status == 200:
+        # print("resp.raw_response.url = ", resp.raw_response.url)
+        # print("resp.raw_response.content = ", resp.raw_response.content)
+        soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+        
+        for link in soup.find_all('a'):
+            # print(link.get('href'))
+            urls_raw.append(link.get('href'))
+    else:
+        print("resp.error = ", resp.error)
+    
+    # soup = BeautifulSoup(resp.text, 'html.parser')
+    for url_raw in urls_raw:
+        assembled = process_link(url, url_raw)
+        if assembled:
+            urls.append(assembled)
+    f = open("url_assembled.txt", "a")
+    for line in urls:
+        f.write(line + "\n")
+    f.close()
+    print("urls.length = ", len(urls))
+    return urls
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
+    domains = [".ics.uci.edu", ".cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu", "today.uci.edu/department/information_computer_sciences"]
     try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
+        b = False
+        for domain in domains:
+            if(parsed.netloc.find(domain) != -1):
+                b = True
+                break
+        if not b:
+            return False
+
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -39,3 +76,26 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", parsed)
         raise
+
+def process_link(pageUrl, link):
+    if 'http' in link:
+        return link
+    origin = urlparse(pageUrl.rstrip('/'))
+    processed = f"{origin.scheme}:"
+    try:
+        if link[:2] == '//':
+            processed += link
+        elif link[:2] == '..':
+            back_path = '/'.join(origin.path.split('/')[:-1])
+            processed += f"//{origin.netloc}{back_path}{link[2:]}" 
+        elif link[:2] == './':
+            processed += f"//{origin.netloc}{origin.path}{link[1:]}"
+        elif link[0] == '/':
+            processed += f"//{origin.netloc}{link}"
+        elif link[0] == '#':
+            return None
+        else:
+            processed += f"//{origin.netloc}{origin.path}/{link}"
+    except Exception:
+        return None
+    return processed

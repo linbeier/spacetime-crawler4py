@@ -22,17 +22,27 @@ class Worker(Thread):
         
     def run(self):
         p = crawlParser.CrawlParser()
+        # write urls in a text file - single thread
+        fo = open("url.txt", "a")
         while True:
             tbd_url = self.frontier.get_tbd_url()
             if not tbd_url:
                 self.logger.info("Frontier is empty. Stopping Crawler.")
+                fd = open("word_frequency", "w")
+                for k, v in sorted(self.word_frequency.items(), key=lambda x: x[1], reverse=True):
+                    fd.write(k + " = " + v)
+                fd.close()
+                fd = open("max_words_url", "w")
+                fd.write(self.max_words_url + " = " + self.max_words_number)
+                fd.close()
+                fo.close()
                 break
+            fo.write(tbd_url + "\n")
             resp = download(tbd_url, self.config, self.logger)
             self.logger.info(
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
                 f"using cache {self.config.cache_server}.")
             tokens = p.parse(resp)
-            # get rid of stop words
 
             # count word number, get max url
             if self.max_words_number < len(tokens):
