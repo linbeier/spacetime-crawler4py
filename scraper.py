@@ -35,7 +35,8 @@ def extract_next_links(url, resp, soup):
 
 
     for l in urls_raw:
-        fd.write(l + "\n")
+        if l:
+            fd.write(l + "\n")
 
     fd.close()
 
@@ -55,17 +56,11 @@ def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
-    domains = [".ics.uci.edu", ".cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu", "today.uci.edu/department/information_computer_sciences"]
     try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
-        b = False
-        for domain in domains:
-            if parsed.netloc.find(domain) != -1:
-                b = True
-                break
-        if not b:
+        if not check_domain(parsed):
             return False
 
         return not re.match(
@@ -82,9 +77,16 @@ def is_valid(url):
         print ("TypeError for ", parsed)
         raise
 
+def check_domain(parsed):
+    domains = set([".ics.uci.edu", ".cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu", "today.uci.edu/department/information_computer_sciences"])
+    matched = next(filter(lambda domain: domain in parsed.netloc, domains), None)
+    return matched is not None
+
 def process_link(pageUrl, link):
-    if 'http' in link:
-        return link
+    parsed = urlparse(link)
+    # Ignore links with schemes set other than http and https. eg: mailto:, mri:
+    if parsed.scheme:
+        return link if parsed.scheme in set(["http", "https"]) else None
     origin = urlparse(pageUrl.rstrip('/'))
     processed = f"{origin.scheme}:"
     try:
@@ -98,9 +100,9 @@ def process_link(pageUrl, link):
         elif link[0] == '/':
             processed += f"//{origin.netloc}{link}"
         elif link[0] == '#':
-            return None
+            processed = None
         else:
             processed += f"//{origin.netloc}{origin.path}/{link}"
     except Exception:
         return None
-    return processed
+    return urldefrag(processed)[0] if processed else None
