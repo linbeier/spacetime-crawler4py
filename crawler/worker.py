@@ -25,6 +25,7 @@ class Worker(Thread):
         super().__init__(daemon=True)
 
     def run(self):
+        subdomains = {}
         p = crawlParser.CrawlParser()
         # write urls in a text file - single thread
         fo = open("url.txt", "a")
@@ -48,6 +49,11 @@ class Worker(Thread):
 
                 fo.close()
                 f1.close()
+
+                subdomains = sorted(subdomains.items())
+                f_subdomain = open("subdomain.txt", "w")
+                for d in subdomains:
+                    f_subdomain.write(d, "\n")
                 break
 
             fo.write(tbd_url + "\n")
@@ -68,7 +74,8 @@ class Worker(Thread):
 
             tokens = p.parse(resp, soup)
             scraped_urls = scraper.scraper(tbd_url, resp, soup)
-
+            if(re.match(r'(.*)ics.uci.edu(.*)', tbd_url)):
+                find_sub_domain(subdomains, tbd_url, scraped_urls)
 
 
             for l in scraped_urls:
@@ -100,3 +107,15 @@ class Worker(Thread):
         else:
             print("resp.error = ", resp.error)
             return None
+
+'''
+subdomains - dictionary that contains <domain, pageset>
+url - domain that has subdomain ics.uci.edu
+list - pages scrapted from the url
+'''
+    def find_sub_domain(subdomains, url, list):
+    if not subdomains.has_key(url):
+        s = set()
+        for page in list:
+            s.add(page)
+        subdomains[url] = s
