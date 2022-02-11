@@ -2,10 +2,12 @@ import re
 from urllib.parse import urlparse, urldefrag
 from bs4 import BeautifulSoup
 
+
 def scraper(url, resp, soup):
-    print("enter scraper")
+    # print("enter scraper")
     links = extract_next_links(url, resp, soup)
     return [link for link in links if is_valid(link)]
+
 
 def extract_next_links(url, resp, soup):
     # Implementation required.
@@ -32,18 +34,18 @@ def extract_next_links(url, resp, soup):
         # print(link.get('href'))
         urls_raw.append(link.get('href'))
 
-
-
     for l in urls_raw:
-        fd.write(l + "\n")
+        if l:
+            fd.write(l + "\n")
 
     fd.close()
-
 
     for url_raw in urls_raw:
         assembled = process_link(url, url_raw)
         if assembled:
+            assembled = urldefrag(assembled)[0]
             urls.append(assembled)
+
     # f = open("url_assembled.txt", "w")
     # for line in urls:
     #     f.write(line + "\n")
@@ -51,21 +53,16 @@ def extract_next_links(url, resp, soup):
     print("urls.length = ", len(urls))
     return urls
 
+
 def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
-    domains = [".ics.uci.edu", ".cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu", "today.uci.edu/department/information_computer_sciences"]
     try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
-        b = False
-        for domain in domains:
-            if parsed.netloc.find(domain) != -1:
-                b = True
-                break
-        if not b:
+        if not check_domain(parsed):
             return False
 
         return not re.match(
@@ -79,28 +76,57 @@ def is_valid(url):
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
 
     except TypeError:
-        print ("TypeError for ", parsed)
+        print("TypeError for ", parsed)
         raise
 
+def check_domain(parsed):
+    domains = set([".ics.uci.edu", ".cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu", "today.uci.edu/department/information_computer_sciences"])
+    matched = next(filter(lambda domain: domain in parsed.netloc, domains), None)
+    return matched is not None
+
 def process_link(pageUrl, link):
-    if 'http' in link:
-        return link
+    if link is None:
+        return None
+
+    parsed = urlparse(link)
+    # Ignore links with schemes set other than http and https. eg: mailto:, mri:
+    if parsed.scheme:
+        return link if parsed.scheme in set(["http", "https"]) else None
+
     origin = urlparse(pageUrl.rstrip('/'))
     processed = f"{origin.scheme}:"
     try:
         if link[:2] == '//':
             processed += link
-        elif link[:2] == '..':
-            back_path = '/'.join(origin.path.split('/')[:-1])
-            processed += f"//{origin.netloc}{back_path}{link[2:]}" 
+        elif link[:3] == '../':
+            back_count = link.count('../')
+            back_path = '/'.join(origin.path.split('/')[:-back_count])
+            processed += f"//{origin.netloc}{back_path}/{link[back_count * 3:]}"
         elif link[:2] == './':
             processed += f"//{origin.netloc}{origin.path}{link[1:]}"
         elif link[0] == '/':
             processed += f"//{origin.netloc}{link}"
         elif link[0] == '#':
-            return None
+            processed = None
         else:
             processed += f"//{origin.netloc}{origin.path}/{link}"
     except Exception:
         return None
-    return processed
+    processed = strip_query(processed)
+    processed = avoid_calender(processed)
+
+    return urldefrag(processed)[0] if processed else None
+
+
+def strip_query(url):
+    if '?' in url:
+        url = url.split("?")[0]
+    return url
+
+
+def avoid_calender(url):
+    res = re.match(r'\/event\/\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$', url)
+    if res is None:
+        return url
+    print(f"filtered url: {url}")
+    return None
