@@ -1,7 +1,5 @@
 from parser import tokenizer
 
-
-
 def WordFrequency(tokenList, tokenDict):
     for token in tokenList:
         if token in tokenDict:
@@ -9,11 +7,12 @@ def WordFrequency(tokenList, tokenDict):
         else:
             tokenDict[token] = 1
 
-
 class CrawlParser:
     def __init__(self):
         self.stopwrds = self.load_stopwrds()
-        pass
+        self.max_words = 0
+        self.max_url = ""
+        self.word_freq = {}
 
     def load_stopwrds(self, Lang='Eng'):
         file_name = './parser/stop_words_' + Lang
@@ -24,16 +23,23 @@ class CrawlParser:
         return stopwrds
 
     # need pre-parse html, arg is a html file
-    def parse(self, file, soup):
+    def parse(self, soup):
         token = tokenizer.tokenizer()
         # strip html header
         text = soup.get_text()
         # print(text)
         word_list = token.Tokenize(text)
-        # print(word_set) # todo
         word_list = self.remove_stopwrds(word_list)
-        # print(word_set) # todo
         return word_list
+
+    def analyze(self, word_list, url):
+        # calculate word frequency
+        WordFrequency(word_list, self.word_freq)
+        # count word number, get max url
+        if self.max_words < len(word_list):
+            self.max_words = len(word_list)
+            self.max_url = url
+
 
     def remove_stopwrds(self, word_list, lang='Eng'):
         return list(filter(self.filter_stop_word, word_list))
@@ -53,4 +59,4 @@ if __name__ == "__main__":
              "r", encoding="utf-8")
     texts = f.read()
     c = CrawlParser()
-    c.parse(texts)
+    c.parse()

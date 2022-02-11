@@ -9,10 +9,12 @@ import time
 
 
 class Worker(Thread):
-    def __init__(self, worker_id, config, frontier):
+    def __init__(self, worker_id, config, frontier, parser, lock):
         self.logger = get_logger(f"Worker-{worker_id}")
         self.config = config
         self.frontier = frontier
+        self.parser = parser
+        self.lock = lock
         # basic check for requests in scraper
         assert {getsource(scraper).find(req) for req in {"from requests import", "import requests"}} == {-1}, "Do not use requests from scraper.py"
         super().__init__(daemon=True)
@@ -37,6 +39,16 @@ class Worker(Thread):
                 self.logger.info("Soup is None. Continue.")
                 self.frontier.task_done()
                 continue
+
+            tokens = self.parser.parse(resp, soup)
+            if len(tokens) < 50:
+                self.logger.info("Low info. Continue.")
+                self.frontier.task_done()
+                continue
+
+            self.lock.aquire()
+            self.parser.analyze(tokens, tbd_url)
+            self.lock.release()
 
             scraped_urls = scraper.scraper(tbd_url, resp, soup)
             self.logger.info(f'[Before add] Valid links: {len(scraped_urls)}')
