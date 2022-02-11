@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 
 
 def scraper(url, resp, soup):
-    # print("enter scraper")
     links = extract_next_links(url, resp, soup)
     return [link for link in links if is_valid(link)]
 
@@ -19,38 +18,12 @@ def extract_next_links(url, resp, soup):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-
-    # print("url = ", url)
-    # print("resp.url = ", resp.url)
-    # print("resp.status = ", resp.status)
     urls = []
-    urls_raw = []
-    # if resp.status == 200:
-    #     # print("resp.raw_response.url = ", resp.raw_response.url)
-    #     # print("resp.raw_response.content = ", resp.raw_response.content)
-    #     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
-    fd = open("url_raw.txt", "a")
+    
     for link in soup.find_all('a'):
-        # print(link.get('href'))
-        urls_raw.append(link.get('href'))
+        urls.append(process_link(url, link.get('href')))
 
-    for l in urls_raw:
-        if l:
-            fd.write(l + "\n")
-
-    fd.close()
-
-    for url_raw in urls_raw:
-        assembled = process_link(url, url_raw)
-        if assembled:
-            assembled = urldefrag(assembled)[0]
-            urls.append(assembled)
-
-    # f = open("url_assembled.txt", "w")
-    # for line in urls:
-    #     f.write(line + "\n")
-
-    print("urls.length = ", len(urls))
+    print("found urls = ", len(urls))
     return urls
 
 
@@ -95,37 +68,40 @@ def check_domain(parsed):
 
 
 def process_link(pageUrl, link):
+    processed = ""
     if link is None:
         return None
-
     parsed = urlparse(link)
     # Ignore links with schemes set other than http and https. eg: mailto:, mri:
     if parsed.scheme:
-        return link if parsed.scheme in set(["http", "https"]) else None
-    # anaylze origin pageUrl
-    origin = urlparse(pageUrl.rstrip('/'))
-    # check is php or html
-    path = origin.path
-    if re.match(r".*\.(php|html|htm)$", path):
-        path = '/'.join(path.split('/')[:-1])
-    processed = f"{origin.scheme}:"
-    try:
-        if link[:2] == '//':
-            processed += link
-        elif link[:3] == '../':
-            back_count = link.count('../')
-            back_path = '/'.join(path.split('/')[:-back_count])
-            processed += f"//{origin.netloc}{back_path}/{link[back_count * 3:]}"
-        elif link[:2] == './':
-            processed += f"//{origin.netloc}{path}/{link[2:]}"
-        elif link[0] == '/':
-            processed += f"//{origin.netloc}/{link[1:]}"
-        elif link[0] == '#':
+        if parsed.scheme not in set(["http", "https"]):
             return None
-        else:
-            processed += f"//{origin.netloc}{path}/{link}"
-    except Exception:
-        return None
+        processed = link
+    else:
+        # anaylze origin pageUrl
+        origin = urlparse(pageUrl.rstrip('/'))
+        # check is php or html
+        path = origin.path
+        if re.match(r".*\.(php|html|htm)$", path):
+            path = '/'.join(path.split('/')[:-1])
+        processed = f"{origin.scheme}:"
+        try:
+            if link[:2] == '//':
+                processed += link
+            elif link[:3] == '../':
+                back_count = link.count('../')
+                back_path = '/'.join(path.split('/')[:-back_count])
+                processed += f"//{origin.netloc}{back_path}/{link[back_count * 3:]}"
+            elif link[:2] == './':
+                processed += f"//{origin.netloc}{path}/{link[2:]}"
+            elif link[0] == '/':
+                processed += f"//{origin.netloc}/{link[1:]}"
+            elif link[0] == '#':
+                return None
+            else:
+                processed += f"//{origin.netloc}{path}/{link}"
+        except Exception:
+            return None
 
     processed = strip_query(processed)
     return urldefrag(processed)[0] if processed else None
@@ -150,7 +126,3 @@ def repeated(s):
     match = REPEATER.findall(f"{s}/")
     # print(match)
     return len(match) > 0
-
-a = 'https://www.ics.uci.edu/grad/policies/GradPolicies_Defense.php'
-b = 'forms/index.php'
-print(process_link(a, b))

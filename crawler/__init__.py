@@ -19,8 +19,29 @@ class Crawler(object):
 
     def start(self):
         self.start_async()
+        # dispatch urls in batches
+        self.crawl()
         self.join()
 
     def join(self):
         for worker in self.workers:
             worker.join()
+
+    # Each queued link is a new job
+    def create_jobs(self):
+        self.frontier.tbd_to_queue()
+        # block until added tasks batch is done
+        self.logger.info(f"New Batch => batch size: {self.frontier.get_queue_size()}, tbd count: {self.frontier.get_tbd_size()}")
+        self.frontier.await_batch()
+        self.logger.info("Batch Complete")
+        self.crawl()
+
+    # Check if there are items in the queue, if so crawl them
+    def crawl(self):
+        tbd_count = self.frontier.get_tbd_size()
+        print(tbd_count)
+        if tbd_count > 0:
+            self.create_jobs()
+        else:
+            self.logger.info("Nothing to crawl")
+
