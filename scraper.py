@@ -92,9 +92,10 @@ def process_link(pageUrl, link):
     try:
         if link[:2] == '//':
             processed += link
-        elif link[:2] == '..':
-            back_path = '/'.join(origin.path.split('/')[:-1])
-            processed += f"//{origin.netloc}{back_path}{link[2:]}" 
+        elif link[:3] == '../':
+            back_count = link.count('../')
+            back_path = '/'.join(origin.path.split('/')[:-back_count])
+            processed += f"//{origin.netloc}{back_path}/{link[back_count * 3:]}" 
         elif link[:2] == './':
             processed += f"//{origin.netloc}{origin.path}{link[1:]}"
         elif link[0] == '/':
