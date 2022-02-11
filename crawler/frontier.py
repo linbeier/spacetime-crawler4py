@@ -12,6 +12,7 @@ class Frontier(object):
         self.logger = get_logger("FRONTIER")
         self.config = config
         self.to_be_downloaded = list()
+        self.visited = set() # for duplicate detection
         
         if not os.path.exists(self.config.save_file) and not restart:
             # Save file does not exist, but request to load save.
@@ -56,10 +57,11 @@ class Frontier(object):
     def add_url(self, url):
         url = normalize(url)
         urlhash = get_urlhash(url)
-        if urlhash not in self.save:
+        if urlhash not in self.save and urlhash not in self.visited:
             self.save[urlhash] = (url, False)
             self.save.sync()
             self.to_be_downloaded.append(url)
+            self.visited.add(urlhash)
     
     def mark_url_complete(self, url):
         urlhash = get_urlhash(url)
