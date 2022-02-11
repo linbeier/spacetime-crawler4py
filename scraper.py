@@ -46,7 +46,7 @@ def is_valid(url):
             return False
 
         return not re.match(
-            r".*\.(css|js|bmp|gif|jpe?g|ico"
+            r".*\.(css|js|bmp|gif|jpe?g|ico|img"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ply"
             + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|txt|log"
@@ -113,7 +113,7 @@ def strip_query(url):
 
 
 def check_calender(url):
-    res = re.match(r'\/event\/\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$', url)
+    res = re.match(r'\bevents\b\/\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$', url)
     if res is None:
         return False
     print(f"filtered url: {url}")
@@ -124,3 +124,5 @@ def repeated(s):
     REPEATER = re.compile(r"(.+/)\1+")
     match = REPEATER.findall(f"{s}/")
     return len(match) > 0
+
+
