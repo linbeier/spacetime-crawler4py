@@ -2,10 +2,12 @@ import re
 from urllib.parse import urlparse, urldefrag
 from bs4 import BeautifulSoup
 
+
 def scraper(url, resp, soup):
-    print("enter scraper")
+    # print("enter scraper")
     links = extract_next_links(url, resp, soup)
     return [link for link in links if is_valid(link)]
+
 
 def extract_next_links(url, resp, soup):
     # Implementation required.
@@ -32,18 +34,17 @@ def extract_next_links(url, resp, soup):
         # print(link.get('href'))
         urls_raw.append(link.get('href'))
 
-
-
     for l in urls_raw:
-        fd.write(l + "\n")
+        fd.write(f"{l} + \n")
 
     fd.close()
-
 
     for url_raw in urls_raw:
         assembled = process_link(url, url_raw)
         if assembled:
+            assembled = urldefrag(assembled)[0]
             urls.append(assembled)
+
     # f = open("url_assembled.txt", "w")
     # for line in urls:
     #     f.write(line + "\n")
@@ -51,11 +52,13 @@ def extract_next_links(url, resp, soup):
     print("urls.length = ", len(urls))
     return urls
 
+
 def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
-    domains = [".ics.uci.edu", ".cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu", "today.uci.edu/department/information_computer_sciences"]
+    domains = [".ics.uci.edu", ".cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu",
+               "today.uci.edu/department/information_computer_sciences"]
     try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
@@ -79,10 +82,17 @@ def is_valid(url):
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
 
     except TypeError:
-        print ("TypeError for ", parsed)
+        print("TypeError for ", parsed)
         raise
 
+
 def process_link(pageUrl, link):
+    if link is None:
+        return None
+
+    link = strip_query(link)
+    link = avoid_calender(link)
+
     if 'http' in link:
         return link
     origin = urlparse(pageUrl.rstrip('/'))
@@ -92,7 +102,7 @@ def process_link(pageUrl, link):
             processed += link
         elif link[:2] == '..':
             back_path = '/'.join(origin.path.split('/')[:-1])
-            processed += f"//{origin.netloc}{back_path}{link[2:]}" 
+            processed += f"//{origin.netloc}{back_path}{link[2:]}"
         elif link[:2] == './':
             processed += f"//{origin.netloc}{origin.path}{link[1:]}"
         elif link[0] == '/':
@@ -104,3 +114,17 @@ def process_link(pageUrl, link):
     except Exception:
         return None
     return processed
+
+
+def strip_query(url):
+    if '?' in url:
+        url = url.split("?")[0]
+    return url
+
+
+def avoid_calender(url):
+    res = re.match(r'\/event\/\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$', url)
+    if res is None:
+        return url
+    print(f"filtered url: {url}")
+    return re.sub(r'\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$', '', url)
