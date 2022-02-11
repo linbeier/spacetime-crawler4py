@@ -78,13 +78,15 @@ class Worker(Thread):
                 continue
 
             tokens = p.parse(resp, soup)
+            if len(tokens) < 50:
+                continue
+
             scraped_urls = scraper.scraper(tbd_url, resp, soup)
+            for l in scraped_urls:
+                f1.write(f"{l} + \n")
 
             if re.match(r'(.*)ics.uci.edu(.*)', tbd_url):
                 find_sub_domain(subdomains, tbd_url, scraped_urls)
-
-            for l in scraped_urls:
-                f1.write(f"{l} + \n")
 
             # count word number, get max url
             if self.max_words_number < len(tokens):
