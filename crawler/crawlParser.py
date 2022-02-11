@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from bs4.element import Comment
 import re
 
+
 #
 # def filter_nontext(element):
 #     if isinstance(element, Comment):
@@ -25,10 +26,10 @@ class CrawlParser:
         self.stopwrds = self.load_stopwrds()
         pass
 
-    def load_stopwrds(self, Lang = 'Eng'):
+    def load_stopwrds(self, Lang='Eng'):
         file_name = './crawler/stop_words_' + Lang
         stopwrds = set()
-        with open(file_name, 'r', encoding = "utf-8") as f:
+        with open(file_name, 'r', encoding="utf-8") as f:
             for line in f:
                 stopwrds.add(line.strip())
         return stopwrds
@@ -40,26 +41,28 @@ class CrawlParser:
         # strip html header
         text = soup.get_text()
         # print(text)
-        word_set = token.Tokenize(text)
+        word_list = token.Tokenize(text)
         # print(word_set) # todo
-        word_set = self.remove_stopwrds(word_set)
+        word_list = self.remove_stopwrds(word_list)
         # print(word_set) # todo
-        return word_set
+        return word_list
 
-    def remove_stopwrds(self, word_set, lang = 'Eng'):
-        for word in word_set:
-            if word in self.stopwrds:
-                word_set.remove(word)
-        return word_set
+    def remove_stopwrds(self, word_list, lang='Eng'):
+        return list(filter(self.filter_stop_word, word_list))
 
     # persistent results to files
     def persistent(self, tokens):
         pass
 
+    def filter_stop_word(self, val):
+        if val in self.stopwrds:
+            return False
+        return True
+
 
 if __name__ == "__main__":
     f = open("../test/Donald Bren School of Information and Computer Sciences @ University of California, Irvine.html",
-            "r", encoding = "utf-8")
+             "r", encoding="utf-8")
     texts = f.read()
     c = CrawlParser()
     c.parse(texts)

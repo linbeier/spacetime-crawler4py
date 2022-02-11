@@ -9,6 +9,7 @@ from utils import get_logger
 import scraper
 import time
 from crawler import crawlParser
+import re
 
 
 class Worker(Thread):
@@ -77,7 +78,7 @@ class Worker(Thread):
             tokens = p.parse(resp, soup)
             scraped_urls = scraper.scraper(tbd_url, resp, soup)
 
-            if(re.match(r'(.*)ics.uci.edu(.*)', tbd_url)):
+            if re.match(r'(.*)ics.uci.edu(.*)', tbd_url):
                 find_sub_domain(subdomains, tbd_url, scraped_urls)
 
             for l in scraped_urls:
@@ -111,13 +112,16 @@ class Worker(Thread):
             print("resp.error = ", resp.error)
             return None
 
+
 '''
 subdomains - dictionary that contains <domain, pageset>
 url - domain that has subdomain ics.uci.edu
 list - pages scrapted from the url
 '''
-    def find_sub_domain(subdomains, url, list):
-    if not subdomains.has_key(url):
+
+
+def find_sub_domain(subdomains, url, list):
+    if url not in subdomains:
         s = set()
         for page in list:
             s.add(page)
