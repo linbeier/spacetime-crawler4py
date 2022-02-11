@@ -12,6 +12,18 @@ from parser import crawlParser
 import re
 
 
+def parse_html(resp):
+    try:
+        if resp.status == 200:
+            soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+            return soup
+        else:
+            print("resp.error = ", resp.error)
+            return None
+    except AttributeError:
+        return None
+
+
 class Worker(Thread):
     def __init__(self, worker_id, config, frontier):
         self.logger = get_logger(f"Worker-{worker_id}", "Worker")
@@ -68,7 +80,7 @@ class Worker(Thread):
             fo.write(tbd_url + "\n")
 
             resp = download(tbd_url, self.config, self.logger)
-            soup = self.parse_html(resp)
+            soup = parse_html(resp)
 
             self.logger.info(
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
@@ -101,14 +113,6 @@ class Worker(Thread):
                 self.frontier.add_url(scraped_url)
             self.frontier.mark_url_complete(tbd_url)
             time.sleep(self.config.time_delay)
-
-    def parse_html(self, resp):
-        if resp.status == 200:
-            soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
-            return soup
-        else:
-            print("resp.error = ", resp.error)
-            return None
 
 
 '''
