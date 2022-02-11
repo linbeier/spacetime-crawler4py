@@ -8,7 +8,7 @@ from utils.download import download
 from utils import get_logger
 import scraper
 import time
-from crawler import crawlParser
+from parser import crawlParser
 import re
 
 
@@ -53,6 +53,7 @@ class Worker(Thread):
                 fd = open("max_words_url", "w")
                 fd.write(self.max_words_url + " = " + str(self.max_words_number))
                 fd_maxurl.close()
+                fd.close()
 
                 fo.close()
                 f1.close()
@@ -61,6 +62,7 @@ class Worker(Thread):
                 f_subdomain = open("subdomain.txt", "w")
                 for d in subdomains:
                     f_subdomain.write(d, "\n")
+                f_subdomain.close()
                 break
 
             fo.write(tbd_url + "\n")
@@ -104,8 +106,6 @@ class Worker(Thread):
 
     def parse_html(self, resp):
         if resp.status == 200:
-            # print("resp.raw_response.url = ", resp.raw_response.url)
-            # print("resp.raw_response.content = ", resp.raw_response.content)
             soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
             return soup
         else:

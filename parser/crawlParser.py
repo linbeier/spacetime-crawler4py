@@ -1,18 +1,7 @@
-from crawler import tokenizer
-from bs4 import BeautifulSoup
-from bs4.element import Comment
-import re
+from parser import tokenizer
 
 
-#
-# def filter_nontext(element):
-#     if isinstance(element, Comment):
-#         return False
-#     if element.parent.name in ['[document]', 'script', 'meta', 'head', 'html', 'input', 'style', 'noscript', 'canvas']:
-#         return False
-#     if re.match(r'[\r\s\n]+', str(element)):
-#         return False
-#     return True
+
 def WordFrequency(tokenList, tokenDict):
     for token in tokenList:
         if token in tokenDict:
@@ -27,7 +16,7 @@ class CrawlParser:
         pass
 
     def load_stopwrds(self, Lang='Eng'):
-        file_name = './crawler/stop_words_' + Lang
+        file_name = './parser/stop_words_' + Lang
         stopwrds = set()
         with open(file_name, 'r', encoding="utf-8") as f:
             for line in f:
@@ -37,7 +26,6 @@ class CrawlParser:
     # need pre-parse html, arg is a html file
     def parse(self, file, soup):
         token = tokenizer.tokenizer()
-        # soup = BeautifulSoup(file, features="html.parser")
         # strip html header
         text = soup.get_text()
         # print(text)

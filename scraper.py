@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 
 
 def scraper(url, resp, soup):
-    # print("enter scraper")
     links = extract_next_links(url, resp, soup)
     return [link for link in links if is_valid(link)]
 
@@ -20,18 +19,12 @@ def extract_next_links(url, resp, soup):
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
 
-    # print("url = ", url)
-    # print("resp.url = ", resp.url)
-    # print("resp.status = ", resp.status)
+
     urls = []
     urls_raw = []
-    # if resp.status == 200:
-    #     # print("resp.raw_response.url = ", resp.raw_response.url)
-    #     # print("resp.raw_response.content = ", resp.raw_response.content)
-    #     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+
     fd = open("url_raw.txt", "a")
     for link in soup.find_all('a'):
-        # print(link.get('href'))
         urls_raw.append(link.get('href'))
 
     for l in urls_raw:
@@ -43,12 +36,7 @@ def extract_next_links(url, resp, soup):
     for url_raw in urls_raw:
         assembled = process_link(url, url_raw)
         if assembled:
-            assembled = urldefrag(assembled)[0]
             urls.append(assembled)
-
-    # f = open("url_assembled.txt", "w")
-    # for line in urls:
-    #     f.write(line + "\n")
 
     print("urls.length = ", len(urls))
     return urls
@@ -75,7 +63,7 @@ def is_valid(url):
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
-            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
+            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ply"
             + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
@@ -148,7 +136,6 @@ def check_calender(url):
 def repeated(s):
     REPEATER = re.compile(r"(.+/)\1+")
     match = REPEATER.findall(f"{s}/")
-    # print(match)
     return len(match) > 0
 
 a = 'https://www.ics.uci.edu/grad/policies/GradPolicies_Defense.php'
