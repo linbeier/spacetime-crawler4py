@@ -93,43 +93,44 @@ def check_domain(parsed):
     matched = next(filter(lambda domain: domain in parsed.netloc, domains), None)
     return matched is not None
 
-
 def process_link(pageUrl, link):
+    processed = ""
     if link is None:
         return None
-
     parsed = urlparse(link)
     # Ignore links with schemes set other than http and https. eg: mailto:, mri:
     if parsed.scheme:
-        return link if parsed.scheme in set(["http", "https"]) else None
-    # anaylze origin pageUrl
-    origin = urlparse(pageUrl.rstrip('/'))
-    # check is php or html
-    path = origin.path
-    if re.match(r".*\.(php|html|htm)$", path):
-        path = '/'.join(path.split('/')[:-1])
-    processed = f"{origin.scheme}:"
-    try:
-        if link[:2] == '//':
-            processed += link
-        elif link[:3] == '../':
-            back_count = link.count('../')
-            back_path = '/'.join(path.split('/')[:-back_count])
-            processed += f"//{origin.netloc}{back_path}/{link[back_count * 3:]}"
-        elif link[:2] == './':
-            processed += f"//{origin.netloc}{path}/{link[2:]}"
-        elif link[0] == '/':
-            processed += f"//{origin.netloc}/{link[1:]}"
-        elif link[0] == '#':
+        if parsed.scheme not in set(["http", "https"]):
             return None
-        else:
-            processed += f"//{origin.netloc}{path}/{link}"
-    except Exception:
-        return None
+        processed = link
+    else:
+        # anaylze origin pageUrl
+        origin = urlparse(pageUrl.rstrip('/'))
+        # check is php or html
+        path = origin.path
+        if re.match(r".*\.(php|html|htm)$", path):
+            path = '/'.join(path.split('/')[:-1])
+        processed = f"{origin.scheme}:"
+        try:
+            if link[:2] == '//':
+                processed += link
+            elif link[:3] == '../':
+                back_count = link.count('../')
+                back_path = '/'.join(path.split('/')[:-back_count])
+                processed += f"//{origin.netloc}{back_path}/{link[back_count * 3:]}"
+            elif link[:2] == './':
+                processed += f"//{origin.netloc}{path}/{link[2:]}"
+            elif link[0] == '/':
+                processed += f"//{origin.netloc}/{link[1:]}"
+            elif link[0] == '#':
+                return None
+            else:
+                processed += f"//{origin.netloc}{path}/{link}"
+        except Exception:
+            return None
 
     processed = strip_query(processed)
     return urldefrag(processed)[0] if processed else None
-
 
 def strip_query(url):
     if '?' in url:
