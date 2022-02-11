@@ -9,12 +9,12 @@ import time
 
 
 class Worker(Thread):
-    def __init__(self, worker_id, config, frontier, parser, lock):
+    def __init__(self, worker_id, config, frontier, parser):
         self.logger = get_logger(f"Worker-{worker_id}")
         self.config = config
         self.frontier = frontier
         self.parser = parser
-        self.lock = lock
+        self.lock = parser.lock
         # basic check for requests in scraper
         assert {getsource(scraper).find(req) for req in {"from requests import", "import requests"}} == {-1}, "Do not use requests from scraper.py"
         super().__init__(daemon=True)

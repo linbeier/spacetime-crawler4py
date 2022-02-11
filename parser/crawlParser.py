@@ -1,4 +1,5 @@
 from parser import tokenizer
+import threading
 
 def WordFrequency(tokenList, tokenDict):
     for token in tokenList:
@@ -13,6 +14,7 @@ class CrawlParser:
         self.max_words = 0
         self.max_url = ""
         self.word_freq = {}
+        self.lock = threading.Lock()
 
     def load_stopwrds(self, Lang='Eng'):
         file_name = './parser/stop_words_' + Lang
@@ -53,10 +55,16 @@ class CrawlParser:
             return False
         return True
 
+    def display(self):
+        with open("word_frequency", "w") as f:
+            count = 0
+            for k, v in sorted(self.word_freq.items(), key=lambda x: x[1], reverse=True):
+                count += 1
+                if count > 50:
+                    break
+                f.write(k + " = " + v)
+            f.close()
 
-if __name__ == "__main__":
-    f = open("../test/Donald Bren School of Information and Computer Sciences @ University of California, Irvine.html",
-             "r", encoding="utf-8")
-    texts = f.read()
-    c = CrawlParser()
-    c.parse()
+        with open("max_url", "w") as f:
+            f.write(self.max_url + " = " + str(self.max_words))
+        f.close()
