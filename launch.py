@@ -13,7 +13,7 @@ def main(config_file, restart):
     config = Config(cparser)
     config.cache_server = get_cache_server(config, restart)
     parser = CrawlParser()
-    crawler = Crawler(config, restart)
+    crawler = Crawler(config, restart, parser)
     crawler.start()
     # Display statistic results
     parser.display()

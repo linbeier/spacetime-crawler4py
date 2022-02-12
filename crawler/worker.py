@@ -4,15 +4,18 @@ from inspect import getsource
 from bs4 import BeautifulSoup
 from utils.download import download
 from utils import get_logger
+from urllib.parse import urlparse
 import scraper
 import time
 
 
 class Worker(Thread):
-    def __init__(self, worker_id, config, frontier, parser):
+    def __init__(self, worker_id, config, frontier, parser, domain_time, domain_lock):
         self.logger = get_logger(f"Worker-{worker_id}")
         self.config = config
         self.frontier = frontier
+        self.domain_time = domain_time
+        self.domain_lock = domain_lock
         self.parser = parser
         self.lock = parser.lock
         # basic check for requests in scraper
@@ -26,6 +29,17 @@ class Worker(Thread):
                 self.logger.info("Frontier is empty. Stopping Crawler.")
                 self.frontier.task_done()
                 break
+
+            domain = self.extract_domain(tbd_url)
+            if domain is None:
+                self.logger.info("Frontier is empty. Stopping Crawler.")
+                self.frontier.task_done()
+                continue
+
+            self.domain_lock.acquire()
+            if not self.check_polite(time.time(), domain):
+                time.sleep(self.config.time_delay)
+            self.domain_lock.release()
             
             self.logger.info(f"Downloading url: {tbd_url}")
             resp = download(tbd_url, self.config, self.logger)
@@ -40,13 +54,13 @@ class Worker(Thread):
                 self.frontier.task_done()
                 continue
 
-            tokens = self.parser.parse(resp, soup)
+            tokens = self.parser.parse(soup)
             if len(tokens) < 50:
                 self.logger.info("Low info. Continue.")
                 self.frontier.task_done()
                 continue
 
-            self.lock.aquire()
+            self.lock.acquire()
             self.parser.analyze(tokens, tbd_url)
             self.lock.release()
 
@@ -56,12 +70,33 @@ class Worker(Thread):
                 self.frontier.add_url(scraped_url)
             self.logger.info(f"[Add complete] Current count of tbd: {self.frontier.get_tbd_size()}")
             self.frontier.mark_url_complete(tbd_url)
-            time.sleep(self.config.time_delay)
+            # time.sleep(self.config.time_delay)
 
     def parse_html(self, resp):
-        if resp.status == 200:
-            soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
-            return soup
-        else:
-            print("resp.error = ", resp.error)
+        try:
+            if resp.status == 200:
+                soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+                return soup
+            else:
+                print("resp.error = ", resp.error)
+                return None
+        except AttributeError:
             return None
+
+    def check_polite(self, cur_time, domain):
+        if domain not in self.domain_time:
+            self.domain_time[domain] = cur_time
+        else:
+            if cur_time < self.domain_time[domain] + 0.5:
+                self.domain_time[domain] = cur_time
+                return False
+            else:
+                self.domain_time[domain] = cur_time
+                return True
+
+
+    def extract_domain(self, url):
+        if url is None:
+            return None
+        parsed = urlparse(url)
+        return parsed.hostname
