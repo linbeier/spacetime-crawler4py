@@ -62,9 +62,7 @@ class CrawlParser:
                 count += 1
                 if count > 50:
                     break
-                f.write(k + " = " + v)
-            f.close()
+                f.write(f"{k} = {v}")
 
         with open("max_url", "w") as f:
-            f.write(self.max_url + " = " + str(self.max_words))
-        f.close()
+            f.write(f"{self.max_url}  =  {self.max_words}")
