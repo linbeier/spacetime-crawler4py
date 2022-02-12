@@ -10,7 +10,7 @@ import time
 
 
 class Worker(Thread):
-    def __init__(self, worker_id, config, frontier, parser, domain_time, domain_lock):
+    def __init__(self, worker_id, config, frontier, parser, domain_time, domain_lock, subdomain, subdomain_lock):
         self.logger = get_logger(f"Worker-{worker_id}")
         self.config = config
         self.frontier = frontier
@@ -18,6 +18,8 @@ class Worker(Thread):
         self.domain_lock = domain_lock
         self.parser = parser
         self.lock = parser.lock
+        self.subdomain = subdomain
+        self.subdomain_lock = subdomain_lock
         # basic check for requests in scraper
         assert {getsource(scraper).find(req) for req in {"from requests import", "import requests"}} == {-1}, "Do not use requests from scraper.py"
         super().__init__(daemon=True)
@@ -65,6 +67,15 @@ class Worker(Thread):
             self.lock.release()
 
             scraped_urls = scraper.scraper(tbd_url, resp, soup)
+            tbd_url_subdomain = self.extract_domain(tbd_url)
+            if(re.match(r'(.*)ics.uci.edu(.*)', tbd_url_subdomain)):
+                self.subdomain_lock.acquire()
+                subdomain_temp = self.subdomain.get(tbd_url_subdomain, 0) + 1
+                self.subdomain[tbd_url_subdomain] = subdomain_temp
+                self.subdomain_lock.release()
+            
+
+            
             self.logger.info(f'[Before add] Valid links: {len(scraped_urls)}')
             for scraped_url in scraped_urls:
                 self.frontier.add_url(scraped_url)

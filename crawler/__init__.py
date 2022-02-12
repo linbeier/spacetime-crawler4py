@@ -13,10 +13,12 @@ class Crawler(object):
         self.domain_lock = threading.Lock()
         self.worker_factory = worker_factory
         self.parser = parser
+        self.subdomain = {}
+        self.subdomain_lock = threading.Lock()
 
     def start_async(self):
         self.workers = [
-            self.worker_factory(worker_id, self.config, self.frontier, self.parser, self.domain_time, self.domain_lock)
+            self.worker_factory(worker_id, self.config, self.frontier, self.parser, self.domain_time, self.domain_lock, self.subdomain, self.subdomain_lock)
             for worker_id in range(self.config.threads_count)]
         for worker in self.workers:
             worker.start()
@@ -26,6 +28,9 @@ class Crawler(object):
         # dispatch urls in batches
         self.crawl()
         self.join()
+        # wirte all unique urls to text
+        self.write_unique_url()
+        self.wirte_subdomain()
 
     def join(self):
         for worker in self.workers:
@@ -48,3 +53,16 @@ class Crawler(object):
             self.create_jobs()
         else:
             self.logger.info("Nothing to crawl")
+
+    # write all unique urls from frontier to text
+    def write_unique_url(self):
+        with open("unique_url.txt", "w") as f:
+            for url in self.frontier.downloaded:
+                f.write(url + '\n')
+
+    # sort subdomain with its key in alphabetical order and write to text
+    def wirte_subdomain(self):
+        self.subdomain = sorted(self.subdomain.items())
+        with open("subdomain.txt", "w") as f:
+            for d in self.subdomain:
+                f.write(d, '\n')
