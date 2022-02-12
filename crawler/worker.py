@@ -41,11 +41,6 @@ class Worker(Thread):
         subdomains = {}
         p = crawlParser.CrawlParser()
         # write urls in a text file - single thread
-        fo = open("url.txt", "a")
-
-        fd_word = open("word_frequency", "a")
-        fd_maxurl = open("max_words_url", "a")
-        f1 = open("url_processed", "a")
 
         while True:
             tbd_url = self.frontier.get_tbd_url()
@@ -60,15 +55,10 @@ class Worker(Thread):
                         break
                     fd.write(k + " = " + v)
 
-                fd_word.close()
                 fd.close()
                 fd = open("max_words_url", "w")
                 fd.write(self.max_words_url + " = " + str(self.max_words_number))
-                fd_maxurl.close()
                 fd.close()
-
-                fo.close()
-                f1.close()
 
                 subdomains = sorted(subdomains.items())
                 f_subdomain = open("subdomain.txt", "w")
@@ -76,8 +66,6 @@ class Worker(Thread):
                     f_subdomain.write(d, "\n")
                 f_subdomain.close()
                 break
-
-            fo.write(tbd_url + "\n")
 
             resp = download(tbd_url, self.config, self.logger)
             soup = parse_html(resp)
@@ -94,8 +82,7 @@ class Worker(Thread):
                 continue
 
             scraped_urls = scraper.scraper(tbd_url, resp, soup)
-            for l in scraped_urls:
-                f1.write(f"{l} + \n")
+
 
             if re.match(r'(.*)ics.uci.edu(.*)', tbd_url):
                 find_sub_domain(subdomains, tbd_url, scraped_urls)
@@ -104,7 +91,6 @@ class Worker(Thread):
             if self.max_words_number < len(tokens):
                 self.max_words_number = len(tokens)
                 self.max_words_url = tbd_url
-                fd_maxurl.write(self.max_words_url + " = " + str(self.max_words_number) + "\n")
 
             # calculate word frequency
             crawlParser.WordFrequency(tokens, self.word_frequency)
