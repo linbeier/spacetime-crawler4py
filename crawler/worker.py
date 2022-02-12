@@ -70,12 +70,12 @@ class Worker(Thread):
             tbd_url_subdomain = self.extract_domain(tbd_url)
             if(re.match(r'(.*)ics.uci.edu(.*)', tbd_url_subdomain)):
                 self.subdomain_lock.acquire()
-                subdomain_temp = subdomain.get(tbd_url_subdomain, 0) + 1
-                subdomain[tbd_url_subdomain] = subdomain_temp
+                subdomain_temp = self.subdomain.get(tbd_url_subdomain, 0) + 1
+                self.subdomain[tbd_url_subdomain] = subdomain_temp
                 self.subdomain_lock.release()
             
 
-            self.subdomain[tbd_url] = len(scraped_urls)
+            
             self.logger.info(f'[Before add] Valid links: {len(scraped_urls)}')
             for scraped_url in scraped_urls:
                 self.frontier.add_url(scraped_url)

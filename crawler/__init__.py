@@ -62,7 +62,7 @@ class Crawler(object):
 
     # sort subdomain with its key in alphabetical order and write to text
     def wirte_subdomain(self):
-        self.subdomain = sorted(subdomain.items())
+        self.subdomain = sorted(self.subdomain.items())
         with open("subdomain.txt", "w") as f:
-            for d in subdomain:
+            for d in self.subdomain:
                 f.write(d, '\n')
