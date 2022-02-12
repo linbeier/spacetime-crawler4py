@@ -42,6 +42,7 @@ class Worker(Thread):
 
             self.domain_lock.acquire()
             if not self.check_polite(time.time(), domain):
+                print(f"now time: {time.time()}, last crawled: {self.domain_time[domain]}, domain: {domain}")
                 time.sleep(self.config.time_delay)
             self.domain_lock.release()
 
