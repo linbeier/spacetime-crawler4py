@@ -7,6 +7,7 @@ from utils import get_logger
 from urllib.parse import urlparse
 import scraper
 import time
+import re
 
 
 class Worker(Thread):
@@ -21,9 +22,10 @@ class Worker(Thread):
         self.subdomain = subdomain
         self.subdomain_lock = subdomain_lock
         # basic check for requests in scraper
-        assert {getsource(scraper).find(req) for req in {"from requests import", "import requests"}} == {-1}, "Do not use requests from scraper.py"
+        assert {getsource(scraper).find(req) for req in {"from requests import", "import requests"}} == {
+            -1}, "Do not use requests from scraper.py"
         super().__init__(daemon=True)
-        
+
     def run(self):
         while True:
             tbd_url = self.frontier.get_tbd_url()
@@ -42,7 +44,7 @@ class Worker(Thread):
             if not self.check_polite(time.time(), domain):
                 time.sleep(self.config.time_delay)
             self.domain_lock.release()
-            
+
             self.logger.info(f"Downloading url: {tbd_url}")
             resp = download(tbd_url, self.config, self.logger)
             soup = self.parse_html(resp)
@@ -68,14 +70,12 @@ class Worker(Thread):
 
             scraped_urls = scraper.scraper(tbd_url, resp, soup)
             tbd_url_subdomain = self.extract_domain(tbd_url)
-            if(re.match(r'(.*)ics.uci.edu(.*)', tbd_url_subdomain)):
+            if re.match(r'(.*)ics.uci.edu(.*)', tbd_url_subdomain):
                 self.subdomain_lock.acquire()
                 subdomain_temp = self.subdomain.get(tbd_url_subdomain, 0) + 1
                 self.subdomain[tbd_url_subdomain] = subdomain_temp
                 self.subdomain_lock.release()
-            
 
-            
             self.logger.info(f'[Before add] Valid links: {len(scraped_urls)}')
             for scraped_url in scraped_urls:
                 self.frontier.add_url(scraped_url)
@@ -97,14 +97,14 @@ class Worker(Thread):
     def check_polite(self, cur_time, domain):
         if domain not in self.domain_time:
             self.domain_time[domain] = cur_time
+            return True
         else:
-            if cur_time < self.domain_time[domain] + 0.5:
+            if cur_time < self.domain_time[domain] + self.config.time_delay:
                 self.domain_time[domain] = cur_time
                 return False
             else:
                 self.domain_time[domain] = cur_time
                 return True
-
 
     def extract_domain(self, url):
         if url is None:
