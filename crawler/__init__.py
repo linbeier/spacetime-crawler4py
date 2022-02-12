@@ -65,4 +65,5 @@ class Crawler(object):
         self.subdomain = sorted(self.subdomain.items())
         with open("subdomain.txt", "w") as f:
             for d in self.subdomain:
-                f.write(d, '\n')
+                f.write(str(d))
+                f.write('\n')
