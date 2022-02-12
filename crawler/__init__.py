@@ -26,6 +26,8 @@ class Crawler(object):
         # dispatch urls in batches
         self.crawl()
         self.join()
+        # wirte all unique urls to text
+        self.write_unique_url()
 
     def join(self):
         for worker in self.workers:
@@ -48,3 +50,9 @@ class Crawler(object):
             self.create_jobs()
         else:
             self.logger.info("Nothing to crawl")
+
+    # write all unique urls from frontier to text
+    def write_unique_url(self):
+        with open("unique_url.txt", "w") as f:
+            for url in self.frontier.downloaded:
+                f.write(url + '\n')
