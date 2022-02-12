@@ -77,10 +77,10 @@ class Worker(Thread):
                 self.subdomain[tbd_url_subdomain] = subdomain_temp
                 self.subdomain_lock.release()
 
-            self.logger.info(f'[Before add] Valid links: {len(scraped_urls)}')
+            # self.logger.info(f'[Before add] Valid links: {len(scraped_urls)}')
             for scraped_url in scraped_urls:
                 self.frontier.add_url(scraped_url)
-            self.logger.info(f"[Add complete] Current count of tbd: {self.frontier.get_tbd_size()}")
+            # self.logger.info(f"[Add complete] Current count of tbd: {self.frontier.get_tbd_size()}")
             self.frontier.mark_url_complete(tbd_url)
             # time.sleep(self.config.time_delay)
 
