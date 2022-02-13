@@ -85,7 +85,7 @@ def process_link(base, href):
     return urldefrag(processed)[0] if processed else None
 
 def check_calender(url):
-    c = re.compile(r'\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])/?$')
+    c = re.compile(r'\d{4}-(0[1-9]|1[0-2])-?(0[1-9]|[12][0-9]|3[01])?/?$')
     res = c.findall(f"{url}")
     if len(res) == 0:
         return False
@@ -106,7 +106,7 @@ def block(url):
     return False
 
 if __name__ == "__main__":
-    u = "https://mt-live.ics.uci.edu/events/category/corporate-engagement/day/2021-10-10/"
+    u = "https://mt-live.ics.uci.edu/events/category/corporate-engagement/day/2021-10"
     u1 = "https://www.ics.uci.edu/grad/honors/index.php/degrees/resources/computing"
     u2 = "https://www.informatics.uci.edu/very-top-footer-menu-items/people/"
-    print(check_calender(u2))
+    print(check_calender(u))
