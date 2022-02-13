@@ -35,12 +35,14 @@ class CrawlParser:
         return word_list
 
     def analyze(self, word_list, url):
+        self.lock.acquire()
         # calculate word frequency
         WordFrequency(word_list, self.word_freq)
         # count word number, get max url
         if self.max_words < len(word_list):
             self.max_words = len(word_list)
             self.max_url = url
+        self.lock.release()
 
 
     def remove_stopwrds(self, word_list, lang='Eng'):
@@ -62,9 +64,7 @@ class CrawlParser:
                 count += 1
                 if count > 50:
                     break
-                f.write(k + " = " + v)
-            f.close()
+                f.write(f"{k} = {v}")
 
         with open("max_url", "w") as f:
-            f.write(self.max_url + " = " + str(self.max_words))
-        f.close()
+            f.write(f"{self.max_url}  =  {self.max_words}")

@@ -11,7 +11,7 @@ class Frontier(object):
     def __init__(self, config, restart):
         self.logger = get_logger("FRONTIER")
         self.config = config
-        # tbd links of next batch
+        # links to be downloaded (current batch and next batch)
         self.to_be_downloaded = set()
         # global crawled links
         self.downloaded = set()
@@ -65,22 +65,20 @@ class Frontier(object):
         url = normalize(url)
         urlhash = get_urlhash(url)
         if urlhash in self.save:
-            # self.logger.info(f"[Abort] In save: {url}")
             return
         if url in self.to_be_downloaded:
-            # self.logger.info(f"[Abort] In tbd: {url}")
             return
         if url in self.downloaded:
-            # self.logger.info(f"[Abort] In downloaded: {url}")
             return
         self.save[urlhash] = (url, False)
         self.save.sync()
         self.to_be_downloaded.add(url)
     
     def mark_url_complete(self, url):
+        self.to_be_downloaded.remove(url)
         self.downloaded.add(url)
-        print(f"\n\n=====> Crawled {len(self.downloaded)} urls <========\n\n")
-        print(f"\n\n=====> queue size: {self.work_queue.qsize()}")
+        print(f"=====> Crawled {len(self.downloaded)} urls <========")
+        print(f"=====> queue size: {self.work_queue.qsize()}")
         self.task_done()
         urlhash = get_urlhash(url)
         if urlhash not in self.save:
@@ -94,12 +92,11 @@ class Frontier(object):
         # thread calls task_done() to indicate that the item was retrieved and all work on it is complete
         self.work_queue.task_done()
         self.task_done_times += 1
-        self.logger.critical(f"\n\n@@@@@@@@ task done {self.task_done_times}/{self.batch_size} times @@@@@@@\n\n")
+        self.logger.critical(f"@@@@@@@@ task done {self.task_done_times}/{self.batch_size} times @@@@@@@")
 
     def tbd_to_queue(self):
         for url in self.to_be_downloaded:
             self.work_queue.put(url)
-        self.to_be_downloaded.clear()
         self.batch_size = self.work_queue.qsize()
 
     def get_tbd_size(self):

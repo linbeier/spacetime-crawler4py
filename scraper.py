@@ -1,14 +1,14 @@
 import re
-from urllib.parse import urlparse, urldefrag
+from urllib.parse import urlparse, urldefrag, urljoin
 from bs4 import BeautifulSoup
 
 
-def scraper(url, resp, soup):
-    links = extract_next_links(url, resp, soup)
+def scraper(url, soup):
+    links = extract_next_links(url, soup)
     return [link for link in links if is_valid(link)]
 
 
-def extract_next_links(url, resp, soup):
+def extract_next_links(url, soup):
     # Implementation required.
     # url: the URL that was used to get the page
     # resp.url: the actual url of the page
@@ -62,67 +62,34 @@ def is_valid(url):
 
 
 def check_domain(parsed):
-    domains = set([".ics.uci.edu", ".cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu",
-                   "today.uci.edu/department/information_computer_sciences"])
+    domains = set([".ics.uci.edu", ".cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu", "today.uci.edu/department/information_computer_sciences"])
     matched = next(filter(lambda domain: domain in parsed.netloc, domains), None)
     return matched is not None
 
-def process_link(pageUrl, link):
-    processed = ""
-    if link is None:
+def process_link(base, href):
+    if href is None:
         return None
-    parsed = urlparse(link)
+    parsed = urlparse(href)
+    print(parsed.hostname)
     # Ignore links with schemes set other than http and https. eg: mailto:, mri:
-    if parsed.scheme:
-        if parsed.scheme not in set(["http", "https"]):
-            return None
-        processed = link
-    else:
-        # anaylze origin pageUrl
-        origin = urlparse(pageUrl.rstrip('/'))
-        # check is php or html
-        path = origin.path
-        if re.match(r".*\.(php|html|htm)$", path):
-            path = '/'.join(path.split('/')[:-1])
-        processed = f"{origin.scheme}:"
-        try:
-            if link[:2] == '//':
-                processed += link
-            elif link[:3] == '../':
-                back_count = link.count('../')
-                back_path = '/'.join(path.split('/')[:-back_count])
-                processed += f"//{origin.netloc}{back_path}/{link[back_count * 3:]}"
-            elif link[:2] == './':
-                processed += f"//{origin.netloc}{path}/{link[2:]}"
-            elif link[0] == '/':
-                processed += f"//{origin.netloc}/{link[1:]}"
-            elif link[0] == '#':
-                return None
-            else:
-                processed += f"//{origin.netloc}{path}/{link}"
-        except Exception:
-            return None
-
-    processed = strip_query(processed)
+    if parsed.scheme and parsed.scheme not in set(["http", "https"]):
+        return None
+    if href[0] == '#':
+        return None
+    processed = urljoin(base, href)
+    # remove query
+    processed = processed.split("?")[0]
+    # remove fragment
     return urldefrag(processed)[0] if processed else None
 
-def strip_query(url):
-    if '?' in url:
-        url = url.split("?")[0]
-    return url
-
-
 def check_calender(url):
-    res = re.match(r'\bevents\b\/\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$', url)
+    res = re.match(r'\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$', url)
     if res is None:
         return False
     print(f"filtered url: {url}")
     return True
 
-
 def repeated(s):
     REPEATER = re.compile(r"(.+/)\1+")
     match = REPEATER.findall(f"{s}/")
     return len(match) > 0
-
-
