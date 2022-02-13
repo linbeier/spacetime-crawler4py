@@ -40,7 +40,10 @@ class Worker(Thread):
 
             if not self.throttler.check_polite(time.time(), domain):
                 print(f"now time: {time.time()}, last crawled: {self.throttler.last_crawl_time(domain)}, domain: {domain}")
-                time.sleep(self.config.time_delay)
+                # time.sleep(self.config.time_delay)
+                self.frontier.add_url(tbd_url)
+                self.frontier.task_done()
+                continue
 
             resp = download(tbd_url, self.config, self.logger)
             soup = self.parse_html(resp)

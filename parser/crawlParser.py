@@ -58,13 +58,13 @@ class CrawlParser:
         return True
 
     def display(self):
-        with open("word_frequency", "w") as f:
+        with open("word_frequency.txt", "w") as f:
             count = 0
             for k, v in sorted(self.word_freq.items(), key=lambda x: x[1], reverse=True):
                 count += 1
                 if count > 50:
                     break
-                f.write(f"{k} = {v}")
+                f.write(f"{k} = {v}\n")
 
-        with open("max_url", "w") as f:
-            f.write(f"{self.max_url}  =  {self.max_words}")
+        with open("max_url.txt", "w") as f:
+            f.write(f"{self.max_url}  =  {self.max_words}\n")
