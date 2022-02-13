@@ -44,17 +44,19 @@ def is_valid(url):
             return False
         if repeated(url):
             return False
+        if block(url):
+            return False
 
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico|img"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ply"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|txt|log"
+            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|txt|log|bib|at|diff"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz"
-            + r"|java|class|cpp|c|py|cc|xml|r|m|h)$", parsed.path.lower())
+            + r"|java|class|cpp|c|py|cc|xml|r|m|h|apk)$", parsed.path.lower())
 
     except TypeError:
         print("TypeError for ", parsed)
@@ -83,8 +85,9 @@ def process_link(base, href):
     return urldefrag(processed)[0] if processed else None
 
 def check_calender(url):
-    res = re.match(r'\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])/?$', url)
-    if res is None:
+    c = re.compile(r'\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])/?$')
+    res = c.findall(f"{url}")
+    if len(res) == 0:
         return False
     print(f"filtered url: {url}")
     return True
@@ -93,3 +96,17 @@ def repeated(s):
     REPEATER = re.compile(r"(.+/)\1+")
     match = REPEATER.findall(f"{s}/")
     return len(match) > 0
+
+def block(url):
+    c = re.compile(r'.*ics.uci.edu/ugrad/honors/.*')
+    match = c.findall(url)
+    if len(match) > 0:
+        print(f"Block url: {url}")
+        return True
+    return False
+
+if __name__ == "__main__":
+    u = "https://mt-live.ics.uci.edu/events/category/corporate-engagement/day/2021-10-10/"
+    u1 = "https://www.ics.uci.edu/grad/honors/index.php/degrees/resources/computing"
+    u2 = "https://www.informatics.uci.edu/very-top-footer-menu-items/people/"
+    print(check_calender(u2))
