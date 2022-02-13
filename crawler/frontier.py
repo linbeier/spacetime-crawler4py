@@ -1,5 +1,6 @@
 import os
 import shelve
+import threading
 
 from threading import Thread, RLock
 from queue import Queue, Empty
@@ -12,8 +13,10 @@ class Frontier(object):
         self.logger = get_logger("FRONTIER")
         self.config = config
         # links to be downloaded (current batch and next batch)
+        self.tbd_lock = threading.Lock()
         self.to_be_downloaded = set()
         # global crawled links
+        self.dow_lock = threading.Lock()
         self.downloaded = set()
         # thread-safe queue containing tbd links in the current batch
         self.work_queue = Queue()
@@ -64,19 +67,36 @@ class Frontier(object):
     def add_url(self, url):
         url = normalize(url)
         urlhash = get_urlhash(url)
+
         if urlhash in self.save:
             return
+
+        self.tbd_lock.acquire()
         if url in self.to_be_downloaded:
             return
+        self.tbd_lock.release()
+
+        self.dow_lock.acquire()
         if url in self.downloaded:
             return
+        self.dow_lock.release()
+
         self.save[urlhash] = (url, False)
         self.save.sync()
+
+        self.tbd_lock.acquire()
         self.to_be_downloaded.add(url)
+        self.tbd_lock.release()
     
     def mark_url_complete(self, url):
+        self.tbd_lock.acquire()
         self.to_be_downloaded.remove(url)
+        self.tbd_lock.release()
+
+        self.dow_lock.acquire()
         self.downloaded.add(url)
+        self.dow_lock.release()
+
         print(f"=====> Crawled {len(self.downloaded)} urls <========")
         print(f"=====> queue size: {self.work_queue.qsize()}")
         self.task_done()
@@ -100,7 +120,10 @@ class Frontier(object):
         self.batch_size = self.work_queue.qsize()
 
     def get_tbd_size(self):
-        return len(self.to_be_downloaded)
+        self.tbd_lock.acquire()
+        tbd_len = len(self.to_be_downloaded)
+        self.tbd_lock.release()
+        return tbd_len
 
     def await_batch(self):
         self.logger.info("Awaiting Batch")

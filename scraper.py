@@ -67,10 +67,10 @@ def check_domain(parsed):
     return matched is not None
 
 def process_link(base, href):
-    if href is None:
+    if href is None or href == "":
         return None
     parsed = urlparse(href)
-    print(parsed.hostname)
+    # print(parsed.hostname)
     # Ignore links with schemes set other than http and https. eg: mailto:, mri:
     if parsed.scheme and parsed.scheme not in set(["http", "https"]):
         return None
