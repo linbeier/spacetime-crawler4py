@@ -119,7 +119,7 @@ class Frontier(object):
         # thread calls task_done() to indicate that the item was retrieved and all work on it is complete
         self.work_queue.task_done()
         self.task_done_times += 1
-        self.logger.critical(f"@@@@@@@@ task done {self.task_done_times} times @@@@@@@")
+        # self.logger.critical(f"@@@@@@@@ task done {self.task_done_times} times @@@@@@@")
 
     # def tbd_to_queue(self):
     #     for url in self.to_be_downloaded:

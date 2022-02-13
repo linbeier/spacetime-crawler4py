@@ -39,9 +39,10 @@ class Worker(Thread):
                 continue
 
             if not self.throttler.check_polite(time.time(), domain):
-                print(f"now time: {time.time()}, last crawled: {self.throttler.last_crawl_time(domain)}, domain: {domain}")
+                # print(f"now time: {time.time()}, last crawled: {self.throttler.last_crawl_time(domain)}, domain: {domain}")
                 # time.sleep(self.config.time_delay)
-                self.frontier.add_url(tbd_url)
+                # bypass urls hashset and add to work_queue
+                self.frontier.work_queue.put(tbd_url)
                 self.frontier.task_done()
                 continue
 

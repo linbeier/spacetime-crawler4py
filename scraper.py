@@ -83,7 +83,7 @@ def process_link(base, href):
     return urldefrag(processed)[0] if processed else None
 
 def check_calender(url):
-    res = re.match(r'\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$', url)
+    res = re.match(r'\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])/?$', url)
     if res is None:
         return False
     print(f"filtered url: {url}")
