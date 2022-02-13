@@ -38,16 +38,16 @@ class Crawler(object):
 
     # Each queued link is a new job
     def create_jobs(self):
-        self.frontier.tbd_to_queue()
+        # self.frontier.tbd_to_queue()
         # block until added tasks batch is done
-        self.logger.info(f"New Batch => batch size: {self.frontier.get_queue_size()}, tbd count: {self.frontier.get_tbd_size()}")
-        self.frontier.await_batch()
-        self.logger.info("Batch Complete")
-        self.crawl()
+        self.logger.info(f"New Batch => queue size: {self.frontier.get_queue_size()}, unique count: {self.frontier.unique_page}")
+        self.frontier.wait_q()
+        # self.logger.info("Batch Complete")
+        # self.crawl()
 
     # Check if there are items in the queue, if so crawl them
     def crawl(self):
-        tbd_count = self.frontier.get_tbd_size()
+        tbd_count = self.frontier.get_queue_size()
         print(tbd_count)
         if tbd_count > 0:
             self.create_jobs()
@@ -57,7 +57,7 @@ class Crawler(object):
     # write all unique urls from frontier to text
     def write_unique_url(self):
         with open("unique_url.txt", "w") as f:
-            for url in self.frontier.downloaded:
+            for url in self.frontier.detected_urls:
                 f.write(url + '\n')
 
     # sort subdomain with its key in alphabetical order and write to text
