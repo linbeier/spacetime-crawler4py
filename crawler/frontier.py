@@ -79,8 +79,8 @@ class Frontier(object):
     
     def mark_url_complete(self, url):
         self.downloaded.add(url)
-        print(f"=====> Crawled {len(self.downloaded)} urls <========\n")
-        print(f"\n=====> queue size: {self.work_queue.qsize()}")
+        print(f"=====> Crawled {len(self.downloaded)} urls <========")
+        print(f"=====> queue size: {self.work_queue.qsize()}")
         self.task_done()
         urlhash = get_urlhash(url)
         if urlhash not in self.save:
@@ -94,7 +94,7 @@ class Frontier(object):
         # thread calls task_done() to indicate that the item was retrieved and all work on it is complete
         self.work_queue.task_done()
         self.task_done_times += 1
-        self.logger.critical(f"@@@@@@@@ task done {self.task_done_times}/{self.batch_size} times @@@@@@@\n")
+        self.logger.critical(f"@@@@@@@@ task done {self.task_done_times}/{self.batch_size} times @@@@@@@")
 
     def tbd_to_queue(self):
         for url in self.to_be_downloaded:

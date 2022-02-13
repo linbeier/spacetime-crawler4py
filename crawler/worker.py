@@ -36,7 +36,7 @@ class Worker(Thread):
 
             domain = self.extract_domain(tbd_url)
             if domain is None:
-                self.logger.info("Frontier is empty. Stopping Crawler.")
+                self.logger.info("Domain is none. Continue.")
                 self.frontier.task_done()
                 continue
 
@@ -46,8 +46,11 @@ class Worker(Thread):
                 time.sleep(self.config.time_delay)
             self.domain_lock.release()
 
-            self.logger.info(f"Downloading url: {tbd_url}")
+            # self.logger.info(f"Downloading url: {tbd_url}")
             resp = download(tbd_url, self.config, self.logger)
+            if resp.status != 200:
+                self.logger.info(f"Url download error. Error code: {resp.status}. Continue")
+                self.frontier.task_done()
             soup = self.parse_html(resp)
 
             self.logger.info(
