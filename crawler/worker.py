@@ -48,9 +48,6 @@ class Worker(Thread):
 
             # self.logger.info(f"Downloading url: {tbd_url}")
             resp = download(tbd_url, self.config, self.logger)
-            if resp.status != 200:
-                self.logger.info(f"Url download error. Error code: {resp.status}. Continue")
-                self.frontier.task_done()
             soup = self.parse_html(resp)
 
             self.logger.info(
