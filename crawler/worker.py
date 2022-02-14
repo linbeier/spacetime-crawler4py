@@ -29,7 +29,7 @@ class Worker(Thread):
             tbd_url = self.frontier.get_tbd_url()
             if not tbd_url:
                 self.logger.info("Frontier is empty. Stopping Crawler.")
-                self.frontier.task_done()
+                # self.frontier.task_done()
                 break
 
             domain = self.extract_domain(tbd_url)

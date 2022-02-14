@@ -51,11 +51,11 @@ def is_valid(url):
             r".*\.(css|js|bmp|gif|jpe?g|ico|img"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ply"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|txt|log|bib|at|diff"
+            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|txt|log|bib|at|diff|lif"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz"
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz|mpg"
             + r"|java|class|cpp|c|py|cc|xml|r|m|h|apk)$", parsed.path.lower())
 
     except TypeError:
@@ -98,9 +98,11 @@ def repeated(s):
     return len(match) > 0
 
 def block(url):
-    c = re.compile(r'.*ics.uci.edu/ugrad/honors/.*')
-    match = c.findall(url)
-    if len(match) > 0:
+    b1 = re.compile(r'.*ics.uci.edu/ugrad/honors/.*')
+    b2 = re.compile(r'.*ics.uci.edu/honors/.*')
+    m1 = b1.findall(url)
+    m2 = b2.findall(url)
+    if len(m1) > 0 or len(m2) > 0:
         print(f"Block url: {url}")
         return True
     return False
@@ -109,4 +111,6 @@ if __name__ == "__main__":
     u = "https://mt-live.ics.uci.edu/events/category/corporate-engagement/day/2021-10"
     u1 = "https://www.ics.uci.edu/grad/honors/index.php/degrees/resources/computing"
     u2 = "https://www.informatics.uci.edu/very-top-footer-menu-items/people/"
-    print(check_calender(u))
+    u3 = "https://www.ics.uci.edu/ugrad/honors/index.php/resources/sao/resources/overview/forms.php"
+    u4 = "https://www.ics.uci.edu/honors/degrees/resources/advising/resources/Title_IX_Resources.php"
+    print(is_valid(u3))

@@ -42,8 +42,8 @@ class Crawler(object):
         # block until added tasks batch is done
         self.logger.info(f"New Batch => queue size: {self.frontier.get_queue_size()}, unique count: {self.frontier.unique_page}")
         self.frontier.wait_q()
-        # self.logger.info("Batch Complete")
-        # self.crawl()
+        self.logger.info("Batch Complete")
+        self.crawl()
 
     # Check if there are items in the queue, if so crawl them
     def crawl(self):

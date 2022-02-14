@@ -65,7 +65,7 @@ class Frontier(object):
 
     def get_tbd_url(self):
         try:
-            return self.work_queue.get()
+            return self.work_queue.get(timeout=60)
         except Empty:
             return None
 
