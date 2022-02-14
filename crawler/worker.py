@@ -68,7 +68,7 @@ class Worker(Thread):
 
             scraped_urls = scraper.scraper(tbd_url, soup)
             tbd_url_subdomain = self.extract_domain(tbd_url)
-            if re.match(r'(.*)ics.uci.edu(.*)', tbd_url_subdomain):
+            if re.match(r'(.*)\.ics.uci.edu(.*)', tbd_url_subdomain):
                 self.subdomain_lock.acquire()
                 subdomain_temp = self.subdomain.get(tbd_url_subdomain, 0) + 1
                 self.subdomain[tbd_url_subdomain] = subdomain_temp

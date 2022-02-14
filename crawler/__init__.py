@@ -58,12 +58,11 @@ class Crawler(object):
     def write_unique_url(self):
         with open("unique_url.txt", "w") as f:
             for url in self.frontier.detected_urls:
-                f.write(url + '\n')
+                f.write(f"{url}\n")
 
     # sort subdomain with its key in alphabetical order and write to text
     def wirte_subdomain(self):
         self.subdomain = sorted(self.subdomain.items())
         with open("subdomain.txt", "w") as f:
             for d in self.subdomain:
-                f.write(str(d))
-                f.write('\n')
+                f.write(f"{d}\n")
