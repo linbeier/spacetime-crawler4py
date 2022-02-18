@@ -41,12 +41,6 @@ class Worker(Thread):
                     self.frontier.task_done()
                     continue
                 
-                if re.match(r'(.*)\.ics.uci.edu(.*)', domain):
-                    self.subdomain_lock.acquire()
-                    subdomain_temp = self.subdomain.get(domain, 0) + 1
-                    self.subdomain[domain] = subdomain_temp
-                    self.subdomain_lock.release()
-
                 if not self.throttler.check_polite(time.time(), domain):
                     # print(f"now time: {time.time()}, last crawled: {self.throttler.last_crawl_time(domain)}, domain: {domain}")
                     # time.sleep(self.config.time_delay)
@@ -62,6 +56,12 @@ class Worker(Thread):
 
                 resp = download(tbd_url, self.config, self.logger)
                 soup = self.parse_html(resp)
+
+                if re.match(r'(.*)\.ics.uci.edu(.*)', domain):
+                    self.subdomain_lock.acquire()
+                    subdomain_temp = self.subdomain.get(domain, 0) + 1
+                    self.subdomain[domain] = subdomain_temp
+                    self.subdomain_lock.release()
 
                 self.logger.info(
                     f"Downloaded {tbd_url}, status <{resp.status}>, "
