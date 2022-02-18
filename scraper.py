@@ -102,11 +102,14 @@ def repeated(s):
     return len(match) > 0
 
 def block(url):
-    b1 = re.compile(r'.*ics.uci.edu/ugrad/honors/index.php/.*')
-    b2 = re.compile(r'.*ics.uci.edu/honors/index.php/.*')
+    b1 = re.compile(r'.*.ics.uci.edu/ugrad/honors/.*')
+    b2 = re.compile(r'.*.ics.uci.edu/honors/.*')
+    b3 = re.compile(r'www.informatics.uci.edu/files/')
+
     m1 = b1.findall(url)
     m2 = b2.findall(url)
-    if len(m1) > 0 or len(m2) > 0:
+    m3 = b3.findall(url)
+    if len(m1) > 0 or len(m2) > 0 or len(m3) > 0:
         print(f"Block url: {url}")
         return True
     return False
@@ -117,4 +120,5 @@ if __name__ == "__main__":
     u2 = "https://www.informatics.uci.edu/very-top-footer-menu-items/people/"
     u3 = "https://www.ics.uci.edu/ugrad/honors/index.php/resources/sao/resources/overview/forms.php"
     u4 = "https://www.ics.uci.edu/honors/degrees/resources/advising/resources/Title_IX_Resources.php"
+    u5 = "https://www.informatics.uci.edu/files/pdf/"
     print(is_valid(u3))
