@@ -51,11 +51,11 @@ def is_valid(url):
             r".*\.(css|js|bmp|gif|jpe?g|ico|img"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ply"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|txt|log|bib|at|diff|lif"
+            + r"|ps|eps|tex|ppt|pptx|ppsx|doc|docx|xls|xlsx|names|txt|log|bib|at|diff|lif"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz|mpg"
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz|mpg|war"
             + r"|java|class|cpp|c|py|cc|xml|r|m|h|apk)$", parsed.path.lower())
 
     except TypeError:
@@ -101,14 +101,16 @@ def repeated(s):
     return len(match) > 0
 
 def block(url):
-    b1 = re.compile(r'.*.ics.uci.edu/ugrad/honors/.*')
-    b2 = re.compile(r'.*.ics.uci.edu/honors/.*')
-    b3 = re.compile(r'www.informatics.uci.edu/files/')
+    b1 = re.compile(r'.*\.ics.uci.edu/ugrad/honors/.*')
+    b2 = re.compile(r'.*www.ics.uci.edu/honors/.*')
+    b3 = re.compile(r'.*www.informatics.uci.edu/files/.*')
+    b4 = re.compile(r'.*ics.uci.edu/~eppstein/pix/.*')
 
     m1 = b1.findall(url)
     m2 = b2.findall(url)
     m3 = b3.findall(url)
-    if len(m1) > 0 or len(m2) > 0 or len(m3) > 0:
+    m4 = b4.findall(url)
+    if len(m1) > 0 or len(m2) > 0 or len(m3) > 0 or len(m4) > 0:
         print(f"Block url: {url}")
         return True
     return False

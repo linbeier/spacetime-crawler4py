@@ -5,13 +5,14 @@ from bs4 import BeautifulSoup
 from utils.download import download
 from utils import get_logger
 from urllib.parse import urlparse
+from reppy.robots import Robots
 import scraper
 import time
 import re
 
 
 class Worker(Thread):
-    def __init__(self, worker_id, config, frontier, parser, throttler, subdomain, subdomain_lock):
+    def __init__(self, worker_id, config, frontier, parser, throttler, subdomain, subdomain_lock, robot_dict = {}):
         self.logger = get_logger(f"Worker-{worker_id}")
         self.config = config
         self.frontier = frontier
@@ -19,6 +20,7 @@ class Worker(Thread):
         self.parser = parser
         self.subdomain = subdomain
         self.subdomain_lock = subdomain_lock
+        self.robot_objects = robot_dict
         # basic check for requests in scraper
         assert {getsource(scraper).find(req) for req in {"from requests import", "import requests"}} == {
             -1}, "Do not use requests from scraper.py"
@@ -38,12 +40,17 @@ class Worker(Thread):
                     self.logger.info("Domain is none. Continue.")
                     self.frontier.task_done()
                     continue
-
+                
                 if not self.throttler.check_polite(time.time(), domain):
                     # print(f"now time: {time.time()}, last crawled: {self.throttler.last_crawl_time(domain)}, domain: {domain}")
                     # time.sleep(self.config.time_delay)
                     # bypass urls hashset and add to work_queue
                     self.frontier.work_queue.put(tbd_url)
+                    self.frontier.task_done()
+                    continue
+
+                if not self.check_robot_permit(tbd_url, domain):
+                    self.logger.info(f"URL blocked by robots file: {tbd_url}")
                     self.frontier.task_done()
                     continue
 
@@ -66,11 +73,10 @@ class Worker(Thread):
                 #     continue
 
                 scraped_urls = scraper.scraper(tbd_url, soup)
-                tbd_url_subdomain = self.extract_domain(tbd_url)
-                if re.match(r'(.*)\.ics.uci.edu(.*)', tbd_url_subdomain):
+                if re.match(r'(.*)\.ics.uci.edu(.*)', domain):
                     self.subdomain_lock.acquire()
-                    subdomain_temp = self.subdomain.get(tbd_url_subdomain, 0) + 1
-                    self.subdomain[tbd_url_subdomain] = subdomain_temp
+                    subdomain_temp = self.subdomain.get(domain, 0) + 1
+                    self.subdomain[domain] = subdomain_temp
                     self.subdomain_lock.release()
 
                 for scraped_url in scraped_urls:
@@ -87,6 +93,24 @@ class Worker(Thread):
             except Exception as e:
                 self.frontier.task_done()
                 self.logger.error(e)
+
+    def check_robot_permit(self, url, domain):
+        robot_obj = None
+        try:
+            parsed = urlparse(url)
+            if domain in self.robot_objects:
+                robot_obj = self.robot_objects[domain]
+            else:
+                robot_obj = Robots.fetch(f"{parsed.scheme}://{domain}/robots.txt")
+                self.robot_objects[domain] = robot_obj
+                print(f"Add {parsed.scheme}://{domain}/robots.txt file into dict.")
+            robot_permit = robot_obj.allowed(url, "*")
+            if robot_permit is False:
+                print(f"URL blocked by robots file: {url}")
+                print(f"robot file: {str(robot_obj)}")
+        except Exception:
+            return True
+        return robot_permit
 
     def parse_html(self, resp):
         try:
