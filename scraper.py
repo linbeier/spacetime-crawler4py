@@ -51,7 +51,7 @@ def is_valid(url):
             r".*\.(css|js|bmp|gif|jpe?g|ico|img"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ply"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|txt|log|bib|at|diff|lif"
+            + r"|ps|eps|tex|ppt|pptx|ppsx|doc|docx|xls|xlsx|names|txt|log|bib|at|diff|lif"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
