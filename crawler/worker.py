@@ -57,6 +57,12 @@ class Worker(Thread):
                 resp = download(tbd_url, self.config, self.logger)
                 soup = self.parse_html(resp)
 
+                if re.match(r'(.*)\.ics.uci.edu(.*)', domain):
+                    self.subdomain_lock.acquire()
+                    subdomain_temp = self.subdomain.get(domain, 0) + 1
+                    self.subdomain[domain] = subdomain_temp
+                    self.subdomain_lock.release()
+
                 self.logger.info(
                     f"Downloaded {tbd_url}, status <{resp.status}>, "
                     f"using cache {self.config.cache_server}.")
