@@ -69,7 +69,11 @@ def check_domain(parsed):
     return matched is not None
 
 def process_link(base, href):
-    if href is None or href == "":
+    if href is None:
+        return None
+    href = href.replace(r"index.php/","")
+    href = href.replace(r"index.php","")
+    if href == "":
         return None
     parsed = urlparse(href)
     # print(parsed.hostname)
@@ -101,6 +105,7 @@ def block(url):
     b1 = re.compile(r'.*.ics.uci.edu/ugrad/honors/.*')
     b2 = re.compile(r'.*.ics.uci.edu/honors/.*')
     b3 = re.compile(r'www.informatics.uci.edu/files/')
+
     m1 = b1.findall(url)
     m2 = b2.findall(url)
     m3 = b3.findall(url)
