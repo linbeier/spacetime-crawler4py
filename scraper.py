@@ -71,8 +71,7 @@ def check_domain(parsed):
 def process_link(base, href):
     if href is None:
         return None
-    href = href.replace(r"index.php/","")
-    href = href.replace(r"index.php","")
+    href = re.sub(r'index.php/?', '', href)
     if href == "":
         return None
     parsed = urlparse(href)
@@ -121,4 +120,5 @@ if __name__ == "__main__":
     u3 = "https://www.ics.uci.edu/ugrad/honors/index.php/resources/sao/resources/overview/forms.php"
     u4 = "https://www.ics.uci.edu/honors/degrees/resources/advising/resources/Title_IX_Resources.php"
     u5 = "https://www.informatics.uci.edu/files/pdf/"
-    print(is_valid(u3))
+    u6 = ""
+    print(is_valid(u6))
