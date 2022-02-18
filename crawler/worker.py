@@ -59,12 +59,10 @@ class Worker(Thread):
                 continue
 
             tokens = self.parser.parse(soup)
-            if len(tokens) < 50:
-                self.logger.info("Low info. Continue.")
-                self.frontier.task_done()
-                continue
-
-            self.parser.analyze(tokens, tbd_url)
+            # if len(tokens) < 50:
+            #     self.logger.info("Low info. Continue.")
+            #     self.frontier.task_done()
+            #     continue
 
             scraped_urls = scraper.scraper(tbd_url, soup)
             tbd_url_subdomain = self.extract_domain(tbd_url)
@@ -76,6 +74,13 @@ class Worker(Thread):
 
             for scraped_url in scraped_urls:
                 self.frontier.add_url(scraped_url)
+
+            if len(tokens) < 50:
+                self.logger.info("Low info. Continue.")
+                self.frontier.task_done()
+                continue
+            self.parser.analyze(tokens, tbd_url)
+
             self.frontier.mark_url_complete(tbd_url)
             # time.sleep(self.config.time_delay)
 
