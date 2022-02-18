@@ -42,6 +42,7 @@ class CrawlParser:
         if self.max_words < len(word_list):
             self.max_words = len(word_list)
             self.max_url = url
+            print(f"max_url update: {self.max_url}")
         self.lock.release()
 
 
