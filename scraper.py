@@ -3,7 +3,13 @@ from urllib.parse import urlparse, urldefrag, urljoin
 from bs4 import BeautifulSoup
 
 
-def scraper(url, soup):
+def scraper(url, soup, subdomain, subdomain_lock):
+    tbd_url_subdomain = extract_domain(url)
+    if re.match(r'(.*)\.ics.uci.edu(.*)', tbd_url_subdomain):
+        subdomain_lock.acquire()
+        subdomain_temp = subdomain.get(tbd_url_subdomain, 0) + 1
+        subdomain[tbd_url_subdomain] = subdomain_temp
+        subdomain_lock.release()
     links = extract_next_links(url, soup)
     return [link for link in links if is_valid(link)]
 
@@ -114,6 +120,12 @@ def block(url):
         print(f"Block url: {url}")
         return True
     return False
+
+def extract_domain(url):
+        if url is None:
+            return None
+        parsed = urlparse(url)
+        return parsed.hostname
 
 if __name__ == "__main__":
     u = "https://mt-live.ics.uci.edu/events/category/corporate-engagement/day/2021-10"
